@@ -1,0 +1,20 @@
+Other Ideas
+Top N books, merged by title, (possibly over time?)
+Most popular creators (dividing by number of books? or not?)
+
+Ekrem
+Summary of publication year, possibly looking at checkoutYear vs pubYear
+Average between checkoutYear and publicationYear
+
+Andy
+Distribution of Topics
+
+Sarvesh
+Popular publishers
+
+Cody
+Something with Title
+
+Abbas
+Usage class and material type distribution
+
