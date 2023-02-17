@@ -6,7 +6,8 @@ get_checkouts <- function(years, directory="./data/checkouts/"){
   #' 
   #' @years - a vector of integer years
   #' @direrctory - the path to the directory of data files.
-  #'               By default assumed to be ./data/checkouts/
+  #'               By default assumed to be './data/checkouts/'
+  #'               Files are assumed to be named 'checkouts_{year}.csv'
   #' 
   #' Example: checkouts_2005_2006 <- get_checkouts(2005:2006)
   selected_files <- file.path(directory, paste0("checkouts_", years, ".csv"))
