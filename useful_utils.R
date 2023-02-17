@@ -2,6 +2,7 @@ library(data.table)
 
 get_checkouts <- function(years, directory="./data/checkouts/"){
   #' Returns a single dataframe of the Seattle checkouts data for the given years
+  #' Requires the data.table package, which is much faster than R's built-ins.
   #' 
   #' @years - a vector of integer years
   #' @direrctory - the path to the directory of data files.
