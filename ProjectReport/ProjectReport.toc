@@ -1,0 +1,3 @@
+\contentsline {section}{\numberline {1}First Plots}{2}{section.1}%
+\contentsline {subsection}{\numberline {1.1}Plot 1: Checkouts by Usage Class}{2}{subsection.1.1}%
+\contentsline {subsection}{\numberline {1.2}Plot 2: ...}{2}{subsection.1.2}%
