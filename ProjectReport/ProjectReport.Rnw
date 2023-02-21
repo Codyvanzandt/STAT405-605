@@ -24,21 +24,22 @@ checkout_data <- get_checkouts(years)
 \section{First Plots}
 
 \subsection{Plot 1: Checkouts by Usage Class}
-Figure \ref{fig:1} describes ...
+Figure \ref{fig:1} shows the number of physical and digital checkouts from the Seattle Public Library from 2018 to 2022. While the number of digital checkouts has shown consistent and steady growth within this time period, the number of physical checkouts per year has been more sporadic. Most notably, there was significant decrease of physical checkouts in 2020, most likely due to the onset of the COVID-19 pandemic, and the number of physical checkouts per year after 2020 has still not recovered to the levels seen in 2018 and 2019. Because of this downturn in physical checkouts, there were more digital than physical checkouts in years 2020 and 2021.
 \begin{figure}[H]
 \begin{center}
 <<plot1, echo=FALSE,fig.width=7,fig.height=5>>=
-bars <- c()
+  bars <- c()
 for (year in years) {
   bars <- append(bars, table(checkout_data[checkout_data["CheckoutYear"] == year,]$UsageClass))
 }
 
-pos <- barplot(bars, xaxt = "n", ylab = "Number of Checkouts")
+par(mar=c(6,4,1,1))
+pos <- barplot(bars, xaxt = "n", ylab = "Number of Checkouts", space = c(1, 0))
 axis(1, pos, names(bars), tick = FALSE, las=2)
 axis(1, sapply(seq(1, nrow(pos), 2), function(x) {(pos[x] + pos[x + 1]) / 2}), 
      years, line = 3.5, tick = FALSE)
 @
-\end{center}
+  \end{center}
 \caption{Number of Checkouts by Usage Class (Physical or Digital) per Year from 2018 to 2022.}\label{fig:1}
 \end{figure}
 
