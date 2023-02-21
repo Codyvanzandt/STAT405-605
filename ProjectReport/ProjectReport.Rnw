@@ -14,7 +14,7 @@ checkout_data <- get_checkouts(years)
 
 \begin{document}
 
-\title{STAT 405/605 Project}
+\title{Analyzing Book Checkout Trends at the Seattle Public Library: A 4-Year Data Study (2018-2022)}
 \author{Sarvesh Fotedar, Ekrem Kizilkaya, Abbas Shaikh, Cody VanZandt, Andy Wang}
 \maketitle
 \tableofcontents
