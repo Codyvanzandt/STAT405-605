@@ -1,6 +1,6 @@
 library(data.table)
 
-get_checkouts <- function(years, directory="./data/checkouts/"){
+get_checkouts <- function(years, directory="./data/checkouts"){
   #' Returns a single dataframe of the Seattle checkouts data for the given years
   #' Requires the data.table package, which is much faster than R's built-ins.
   #' 
@@ -13,4 +13,21 @@ get_checkouts <- function(years, directory="./data/checkouts/"){
   selected_files <- file.path(directory, paste0("checkouts_", years, ".csv"))
   individual_dataframes <- lapply(selected_files, fread)
   as.data.frame(rbindlist(individual_dataframes))
+}
+
+wrap.it <- function(x, len)
+{ 
+  sapply(x, function(y) paste(strwrap(y, len), 
+                              collapse = "\n"), 
+         USE.NAMES = FALSE)
+}
+
+wrap.labels <- function(x, len)
+{
+  if (is.list(x))
+  {
+    lapply(x, wrap.it, len)
+  } else {
+    wrap.it(x, len)
+  }
 }
