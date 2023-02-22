@@ -1,12 +1,14 @@
+
 \documentclass[10pt]{article}
 \usepackage[left=1in,right=1in,top=1in,bottom=1in]{geometry}
 \usepackage{amsmath}
 \usepackage{hyperref}
 \usepackage{float}
 
-<<setup, echo=FALSE,results='hide'>>=
+<<setup, echo=FALSE,results='hide',warning=FALSE, message=FALSE>>=
 setwd('..')
 source("useful_utils.R")
+library(tidyverse)
 
 years <- 2018:2022
 checkout_data <- get_checkouts(years)
@@ -14,12 +16,22 @@ checkout_data <- get_checkouts(years)
 
 \begin{document}
 
-\title{Analyzing Book Checkout Trends at the Seattle Public Library: A 4-Year Data Study (2018-2022)}
+\title{Analyzing Book Checkout Trends at the Seattle Public Library: A 5-Year Data Study (2018-2022)}
 \author{Sarvesh Fotedar, Ekrem Kizilkaya, Abbas Shaikh, Cody VanZandt, Andy Wang}
 \maketitle
 \tableofcontents
 
 \newpage
+
+\section{Introduction}
+We present an preliminary examination of 11,749,255 checkouts from the Seattle Public Library system over a five-year period from 2018 to 2022. We intend to use this data -- in concert with book review data from Goodreads -- to examine Seattle's literary tastes and reading habits.
+Animating this analysis are more general questions about the contours of contemporary American readership. 
+Why do some books enjoy widespread acclaim while others fizzle?
+Do popular books explode onto the scene or accumulate readers more gradually?
+How do popular success and critical acclaim differ?
+How has recent publisher conglomeration of publishers changed the literary marketplace? 
+And, ultimately, to what degree can the success or failure of a book be predicted?
+The answers, we hope, will be illuminating for authors, publishers, critics, tastemakers, and readers alike. 
 
 \section{First Plots}
 
@@ -59,6 +71,128 @@ barplot(bars[1:7], main="Top 7 Checked-Out Book Subjects, 2018-2022",
 @
 \end{center}
 \caption{Top 7 subjects of all books checked-out from 2018 to 2022.}\label{fig:2}
+\end{figure}
+
+\subsection{Plot 3: Most Popular Physical Books}
+
+Figure \ref{fig:3} shows the relative popularity of the seven most popular physical books with 
+checkouts in each year between 2018 and 2022. We use "relative" popularity to signify that these are not
+necessarily the books that were most popular in each year. Rather, these are the most popular books
+whose popularity endured over the period in question. Novels and memoirs dominate, although their 
+popularity curves exhibit a marked difference: popular memoirs (Educated; Becoming) appear to lack the staying
+power of similarly popular novels (Where the Crawdads Sing; There There; The Overstory). This figure could serve as ground zero 
+for an investigation into the popularity curves and how they vary both within and across generic boundaries. 
+We also note the curious prevalence of reading lines (A Memoir; a Novel). Reading lines have a long and complex history, 
+beginning with 17th century publishers who sought to delineate new, experimentally-realistic work from older romances and epics. 
+Early 20th century writers, by contrast, often troubled this binary by affixing "a Novel" to works that few readers would
+deem "realistic." Finally, post-45 American authors and publishers used (and continue to use!) reading lines
+to assert, aspirationally, that their book belongs among that most "serious" and "literary" in-group: prizewinners.
+An examination linking reading lines to popularity certainly bears further investigation. 
+
+
+\begin{figure}[H]
+\begin{center}
+<<plot3, echo=FALSE,fig.width=8,fig.height=5>>=
+
+is_book <- checkout_data[["MaterialType"]] == "BOOK"
+book_checkouts <- checkout_data[is_book,c("Title", "CheckoutYear", "Checkouts")]
+
+all_years_books <- book_checkouts[ 
+  book_checkouts$Title %in% book_checkouts[book_checkouts$CheckoutYear == 2018, "Title"] &
+    book_checkouts$Title %in% book_checkouts[book_checkouts$CheckoutYear == 2019, "Title"] &
+    book_checkouts$Title %in% book_checkouts[book_checkouts$CheckoutYear == 2020, "Title"] &
+    book_checkouts$Title %in% book_checkouts[book_checkouts$CheckoutYear == 2021, "Title"] &
+    book_checkouts$Title %in% book_checkouts[book_checkouts$CheckoutYear == 2022, "Title"],
+]
+
+title_counts <-aggregate(
+  all_years_books$Checkouts,
+  list(title=all_years_books$Title),
+  FUN=sum
+)
+
+top_books <- book_checkouts[
+  book_checkouts$Title %in% title_counts[
+    order(title_counts$x, decreasing=TRUE),
+  ][1:7,"title"],
+]
+
+top_books_counts <- aggregate(
+  top_books$Checkouts,
+  list(year=top_books$CheckoutYear, title=top_books$Title),
+  FUN=sum
+)
+
+book_positions_by_year <- top_books_counts %>%
+  group_by(year) %>%
+  mutate(rank = rank(-x))%>%
+  arrange(year, rank)
+
+get_ranks_by_year <- function(title){
+  positions <- book_positions_by_year[order(book_positions_by_year$year),]
+  positions[positions$title == title, "rank"]$rank
+}
+
+titles <- book_positions_by_year[
+  book_positions_by_year$year == 2018, "title"][["title"]]
+clean_titles <- wrap.labels(sapply(strsplit(titles," / "), `[`, 1), 16) 
+
+colors <- palette.colors(n=7)
+
+par(las=1, mar=c(5.1, 6.4, 4.1, 2.1 ))
+popular_plot <- plot(NULL, type="l", col="black", lwd=1.0,
+     main="Most Popular Books 2018-2022", xlab="Year", ylab = "", yaxt='n',
+     xlim=c(2018,2022), ylim=c(max(book_positions_by_year$rank),min(book_positions_by_year$rank)))
+
+
+for(i in seq_along(titles)){
+  title <- titles[[i]]
+  ranks <- get_ranks_by_year(title)
+  lines(2018:2022, ranks, col=colors[[i]])
+  axis(2, at=i, labels=clean_titles[[i]], col.axis = colors[[i]])
+}
+
+@
+\end{center}
+\caption{Relative popularity of the most popular physical books 2018-2022}\label{fig:3}
+\end{figure}
+
+\subsection{Plot 4: Prior Year vs. Current Year Popularity}
+
+Figure \ref{fig:4} demonstrates the degree to which current-year popularity is predicted by prior-year popularity for years 
+2019-2022. We present a log-log plot of current vs. prior popularity and overlay a line of best fit. 
+Prior popularity seems a fair -- though by no means perfect -- predictor of future popularity. Noticeably, there two groups 
+straddle the line of best fit: one with over-predicted popularity and one under-predicted. These groups might be a 
+consequence of the nature of popularity; namely, it's either rising or falling. Or this early analysis could be indentifying
+two categorically different groups of books: successes and flops. 
+
+\begin{figure}[H]
+\begin{center}
+<<plot4, echo=FALSE,fig.width=8,fig.height=5>>=
+title_counts_by_year <- aggregate(
+  all_years_books$Checkouts,
+  list(year=all_years_books$CheckoutYear, title=all_years_books$Title),
+  FUN=sum
+)
+
+curr_prev_year_counts <- title_counts_by_year %>%
+  group_by(title) %>%
+  mutate(prev = lag(x, order_by=c(year))) %>%
+  arrange(title, year) %>%
+  rename(curr = x) %>%
+  filter(year > 2018) %>%
+  filter(prev>=24 & curr>=24) %>%
+  mutate(prev=log(prev), curr=log(curr))
+
+curr_prev_model <- lm(curr ~ prev, data=curr_prev_year_counts)
+
+plot(curr_prev_year_counts$prev, curr_prev_year_counts$curr, pch=1,
+     main="Checkouts vs. Prior Year Checkouts",
+     xlab="Log of Prior Year Checkouts",ylab="Log of Checkouts")
+abline(reg=curr_prev_model, col="red")
+@
+\end{center}
+\caption{Current year vs. prior year checkouts, log-log scale}\label{fig:4}
 \end{figure}
 
 \end{document}
