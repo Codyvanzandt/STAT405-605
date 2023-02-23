@@ -195,4 +195,65 @@ abline(reg=curr_prev_model, col="red")
 \caption{Current year vs. prior year checkouts, log-log scale}\label{fig:4}
 \end{figure}
 
+
+\subsection{Plot 5: Normalized Increase in Checkouts between Textbooks vs. all Other Books}
+
+Figure \ref{fig:5} compares the normalized increase from the minimum monthly checkouts between textbooks and all other books including the years 2018-2022. The Q-Q plot compares the quantiles of the total checkouts for each month from the two book categories along with a line of best fit. While both sets of data seem to be distributed roughly the same, there is a slight increase in textbook checkouts in the summer months leading up to the fall semester that drops off once the fall has started. While this is a good start, future work would inclduing looking more in depth at the difference between years during the COVID-19 pandemic and the years before.
+
+\begin{figure}[H]
+\begin{center}
+<<plot5, echo=FALSE,fig.width=8,fig.height=5>>=
+library(stringr)
+pub_names <- tolower(checkout_data$Publisher)
+
+log_cengage <- str_detect(pub_names, "cengage learning")
+log_macmillan <- str_detect(pub_names, "macmillan")
+log_mcgrawhill <- str_detect(pub_names, "mcgraw")
+log_pearson <- str_detect(pub_names, "pearson")
+log_wiley <- str_detect(pub_names, "wiley")
+log_scholastic <- str_detect(pub_names, "scholastic")
+log_harcourt <- str_detect(pub_names, "harcourt")
+log_houghton <- str_detect(pub_names, "houghton")
+log_wolters <- str_detect(pub_names, "wolters")
+log_textbook <- log_cengage | log_macmillan | log_mcgrawhill | log_pearson | log_wiley | log_scholastic | log_harcourt | log_houghton | log_wolters
+
+table_textbook_months <- table(checkout_data$CheckoutMonth[log_textbook])
+txtbook <- table_textbook_months / min(table_textbook_months)
+txtbook <- c(unname(txtbook - min(txtbook))) # textbook only
+
+all_months <- table(checkout_data$CheckoutMonth[!log_textbook])
+allbook <- all_months / min(all_months)
+allbook <- c(unname(allbook - min(allbook))) # all other books
+
+SF_quantile <- function(r) {
+  r <- sort(r, decreasing = FALSE)
+  Lr <- length(r)
+  # which quantiles need to be found
+  q <- seq(from = 0, to = 1, length.out = Lr)
+  # loop through to find the values of each quantile for the r data
+  qr <- c()
+  for(i in 1:Lr) {
+    # using the order statistic method
+    N1 <- as.integer(q[i] * (Lr + 1))
+    N2 <- N1 + 1
+    rr <- (q[i] * (Lr + 1)) - as.integer(q[i] * (Lr + 1))
+    1
+    qr[i] <- ((1 - rr) * r[N1]) + (rr * r[N2])
+  }
+  qr
+}
+
+qt <- SF_quantile(txtbook)
+qa <- SF_quantile(allbook)
+
+par(mfrow = c(1,1))
+plot(qt, qa, xlab = "Normalized Increase in Textbook Checkouts", ylab = "Normalized Increase in Other Book Checkouts")
+abline(lm(sort(qa) ~ sort(qt)), col = "red", lwd = 2, lty = 2)
+
+@
+\end{center}
+\caption{Normalized increase in textbook checkouts compared to all other books}\label{fig:5}
+\end{figure}
+
+
 \end{document}
