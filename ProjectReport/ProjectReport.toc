@@ -1,7 +1,8 @@
-\contentsline {section}{\numberline {1}Introduction}{3}{section.1}%
-\contentsline {section}{\numberline {2}First Plots}{3}{section.2}%
-\contentsline {subsection}{\numberline {2.1}Plot 1: Checkouts by Usage Class}{3}{subsection.2.1}%
-\contentsline {subsection}{\numberline {2.2}Plot 2: Most Popular Subjects}{4}{subsection.2.2}%
-\contentsline {subsection}{\numberline {2.3}Plot 3: Most Popular Physical Books}{5}{subsection.2.3}%
-\contentsline {subsection}{\numberline {2.4}Plot 4: Prior Year vs. Current Year Popularity}{6}{subsection.2.4}%
+\contentsline {section}{\numberline {1}Introduction}{2}{section.1}%
+\contentsline {section}{\numberline {2}First Plots}{2}{section.2}%
+\contentsline {subsection}{\numberline {2.1}Plot 1: Checkouts by Usage Class}{2}{subsection.2.1}%
+\contentsline {subsection}{\numberline {2.2}Plot 2: Most Popular Subjects}{3}{subsection.2.2}%
+\contentsline {subsection}{\numberline {2.3}Plot 3: Most Popular Physical Books}{4}{subsection.2.3}%
+\contentsline {subsection}{\numberline {2.4}Plot 4: Prior Year vs. Current Year Popularity}{5}{subsection.2.4}%
 \contentsline {subsection}{\numberline {2.5}Plot 5: Normalized Increase in Checkouts between Textbooks vs. all Other Books}{6}{subsection.2.5}%
+\contentsline {subsection}{\numberline {2.6}Plot 6: Distribution of Publication Year of Checkouts between 2018-2022}{7}{subsection.2.6}%

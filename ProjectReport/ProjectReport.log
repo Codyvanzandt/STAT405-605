@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.24 (TeX Live 2022) (preloaded format=pdflatex 2023.1.27)  22 FEB 2023 22:44
+This is pdfTeX, Version 3.141592653-2.6-1.40.24 (TeX Live 2022) (preloaded format=pdflatex 2023.1.27)  22 FEB 2023 23:39
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -261,39 +261,31 @@ Package: float 2001/11/08 v1.3d Float enhancements (AL)
 \float@box=\box53
 \@float@everytoks=\toks24
 \@floatcapt=\box54
-)
-LaTeX Font Info:    Font shape `OT1/cmtt/bx/n' in size <10> not available
-(Font)              Font shape `OT1/cmtt/m/n' tried instead on input line 61.
-
-Overfull \hbox (27.74675pt too wide) in paragraph at lines 61--61
-[]\OT1/cmtt/m/n/10 ## Error in library(tidyverse): there is no package called 'tidyverse'[] 
- []
-
-(/home/andy/.TinyTeX/texmf-dist/tex/latex/l3backend/l3backend-pdftex.def
+) (/home/andy/.TinyTeX/texmf-dist/tex/latex/l3backend/l3backend-pdftex.def
 File: l3backend-pdftex.def 2023-01-16 L3 backend support: PDF output (pdfTeX)
 \l__color_backend_stack_int=\count286
 \l__pdf_internal_box=\box55
 ) (./ProjectReport.aux)
 \openout1 = `ProjectReport.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 65.
-LaTeX Font Info:    ... okay on input line 65.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 65.
-LaTeX Font Info:    ... okay on input line 65.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 65.
-LaTeX Font Info:    ... okay on input line 65.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 65.
-LaTeX Font Info:    ... okay on input line 65.
-LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 65.
-LaTeX Font Info:    ... okay on input line 65.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 65.
-LaTeX Font Info:    ... okay on input line 65.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 65.
-LaTeX Font Info:    ... okay on input line 65.
-LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 65.
-LaTeX Font Info:    ... okay on input line 65.
-LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 65.
-LaTeX Font Info:    ... okay on input line 65.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 60.
+LaTeX Font Info:    ... okay on input line 60.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 60.
+LaTeX Font Info:    ... okay on input line 60.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 60.
+LaTeX Font Info:    ... okay on input line 60.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 60.
+LaTeX Font Info:    ... okay on input line 60.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 60.
+LaTeX Font Info:    ... okay on input line 60.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 60.
+LaTeX Font Info:    ... okay on input line 60.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 60.
+LaTeX Font Info:    ... okay on input line 60.
+LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 60.
+LaTeX Font Info:    ... okay on input line 60.
+LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 60.
+LaTeX Font Info:    ... okay on input line 60.
  (/home/andy/.TinyTeX/texmf-dist/tex/latex/epstopdf-pkg/epstopdf-base.sty
 Package: epstopdf-base 2020-01-24 v2.11 Base part for package epstopdf
 Package epstopdf-base Info: Redefining graphics rule for `.eps' on input line 485.
@@ -334,114 +326,100 @@ File: epstopdf-sys.cfg 2010/07/13 v1.3 Configuration of (r)epstopdf for TeX Live
 * \@reversemarginfalse
 * (1in=72.27pt=25.4mm, 1cm=28.453pt)
 
-Package hyperref Info: Link coloring OFF on input line 65.
+Package hyperref Info: Link coloring OFF on input line 60.
 (./ProjectReport.out) (./ProjectReport.out)
 \@outlinefile=\write3
 \openout3 = `ProjectReport.out'.
 
- [1
-
-{/home/andy/.TinyTeX/texmf-var/fonts/map/pdftex/updmap/pdftex.map}] (./ProjectReport.toc)
+ (./ProjectReport.toc)
 \tf@toc=\write4
 \openout4 = `ProjectReport.toc'.
 
- [2]
+ [1
+
+{/home/andy/.TinyTeX/texmf-var/fonts/map/pdftex/updmap/pdftex.map}]
 <figure/plot1-1.pdf, id=56, 505.89pt x 361.35pt>
 File: figure/plot1-1.pdf Graphic file (type pdf)
 <use figure/plot1-1.pdf>
-Package pdftex.def Info: figure/plot1-1.pdf  used on input line 100.
+Package pdftex.def Info: figure/plot1-1.pdf  used on input line 95.
 (pdftex.def)             Requested size: 469.75502pt x 335.54477pt.
- [3]
+ [2]
 <figure/plot2-1.pdf, id=64, 505.89pt x 361.35pt>
 File: figure/plot2-1.pdf Graphic file (type pdf)
 <use figure/plot2-1.pdf>
-Package pdftex.def Info: figure/plot2-1.pdf  used on input line 114.
+Package pdftex.def Info: figure/plot2-1.pdf  used on input line 109.
 (pdftex.def)             Requested size: 469.75502pt x 335.54477pt.
- [4
+ [3
 pdfTeX warning (ext4): destination with the same identifier (name{figure.1}) has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.119 
+l.114 
        <./figure/plot1-1.pdf>]
-
-! LaTeX Error: Something's wrong--perhaps a missing \item.
-
-See the LaTeX manual or LaTeX Companion for explanation.
-Type  H <return>  for immediate help.
- ...                                              
-                                                  
-l.142 ...: object 'titles' not found}}\end{kframe}
-                                                  
-Try typing  <return>  to proceed.
-If that doesn't work, type  X <return>  to quit.
-
-[5
+<figure/plot3-1.pdf, id=76, 578.16pt x 361.35pt>
+File: figure/plot3-1.pdf Graphic file (type pdf)
+<use figure/plot3-1.pdf>
+Package pdftex.def Info: figure/plot3-1.pdf  used on input line 127.
+(pdftex.def)             Requested size: 469.75502pt x 293.59616pt.
+ [4
 pdfTeX warning (ext4): destination with the same identifier (name{figure.2}) has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.147 
+l.132 
        <./figure/plot2-1.pdf>]
-LaTeX Font Info:    Trying to load font information for TS1+cmtt on input line 162.
- (/home/andy/.TinyTeX/texmf-dist/tex/latex/base/ts1cmtt.fd
-File: ts1cmtt.fd 2022/07/10 v2.5l Standard LaTeX font definitions
-)
-
-LaTeX Font Warning: Font shape `TS1/cmtt/bx/n' undefined
-(Font)              using `TS1/cmtt/m/n' instead
-(Font)              for symbol `textdollar' on input line 162.
-
-
-! LaTeX Error: Something's wrong--perhaps a missing \item.
-
-See the LaTeX manual or LaTeX Companion for explanation.
-Type  H <return>  for immediate help.
- ...                                              
-                                                  
-l.164 ...urr\_prev\_model' not found}}\end{kframe}
-                                                  
-Try typing  <return>  to proceed.
-If that doesn't work, type  X <return>  to quit.
-
-<figure/plot5-1.pdf, id=89, 578.16pt x 361.35pt>
-File: figure/plot5-1.pdf Graphic file (type pdf)
-<use figure/plot5-1.pdf>
-Package pdftex.def Info: figure/plot5-1.pdf  used on input line 179.
+<figure/plot4-1.pdf, id=89, 578.16pt x 361.35pt>
+File: figure/plot4-1.pdf Graphic file (type pdf)
+<use figure/plot4-1.pdf>
+Package pdftex.def Info: figure/plot4-1.pdf  used on input line 141.
 (pdftex.def)             Requested size: 469.75502pt x 293.59616pt.
-[6
+ [5
 pdfTeX warning (ext4): destination with the same identifier (name{figure.3}) has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.184 
-      
+l.146 
+       <./figure/plot3-1.pdf>]
+<figure/plot5-1.pdf, id=102, 578.16pt x 361.35pt>
+File: figure/plot5-1.pdf Graphic file (type pdf)
+<use figure/plot5-1.pdf>
+Package pdftex.def Info: figure/plot5-1.pdf  used on input line 155.
+(pdftex.def)             Requested size: 469.75502pt x 293.59616pt.
+ [6
 pdfTeX warning (ext4): destination with the same identifier (name{figure.4}) has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.184 
-      ] [7
+l.160 
+       <./figure/plot4-1.pdf>]
+<figure/plot6-1.pdf, id=115, 578.16pt x 361.35pt>
+File: figure/plot6-1.pdf Graphic file (type pdf)
+<use figure/plot6-1.pdf>
+Package pdftex.def Info: figure/plot6-1.pdf  used on input line 169.
+(pdftex.def)             Requested size: 469.75502pt x 293.59616pt.
+ [7
 pdfTeX warning (ext4): destination with the same identifier (name{figure.5}) has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.185 \end{document}
-                     <./figure/plot5-1.pdf>] (./ProjectReport.aux)
-
-LaTeX Font Warning: Some font shapes were not available, defaults substituted.
-
+l.174 
+       <./figure/plot5-1.pdf>] [8
+pdfTeX warning (ext4): destination with the same identifier (name{figure.6}) has been already used, duplicate ignored
+<argument> ...shipout:D \box_use:N \l_shipout_box 
+                                                  \__shipout_drop_firstpage_...
+l.175 \end{document}
+                     <./figure/plot6-1.pdf>] (./ProjectReport.aux)
 Package rerunfilecheck Info: File `ProjectReport.out' has not changed.
-(rerunfilecheck)             Checksum: 2D65A1BE33544A947072AC651067456B;1685.
+(rerunfilecheck)             Checksum: 972D9192C920ECC8761CB649AA882E1E;2124.
  ) 
 Here is how much of TeX's memory you used:
- 9754 strings out of 478025
- 152720 string characters out of 5840303
- 1859305 words of memory out of 5000000
- 29762 multiletter control sequences out of 15000+600000
- 518470 words of font info for 54 fonts, out of 8000000 for 9000
+ 9763 strings out of 478025
+ 152811 string characters out of 5840303
+ 1857305 words of memory out of 5000000
+ 29770 multiletter control sequences out of 15000+600000
+ 518005 words of font info for 52 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
- 75i,6n,76p,725b,453s stack positions out of 10000i,1000n,20000p,200000b,200000s
- </home/andy/.TinyTeX/texmf-var/fonts/pk/ljfour/jknappen/ec/tctt1000.600pk> </home/andy/.TinyTeX/texmf-var/fonts/pk/ljfour/jknappen/ec/tcrm1000.600pk></home/andy/.TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb></home/andy/.TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></home/andy/.TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></home/andy/.TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></home/andy/.TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr17.pfb></home/andy/.TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt10.pfb>
-Output written on ProjectReport.pdf (7 pages, 123402 bytes).
+ 75i,6n,76p,972b,437s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ </home/andy/.TinyTeX/texmf-var/fonts/pk/ljfour/jknappen/ec/tcrm1000.600pk></home/andy/.TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb></home/andy/.TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></home/andy/.TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></home/andy/.TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></home/andy/.TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr17.pfb>
+Output written on ProjectReport.pdf (8 pages, 3267281 bytes).
 PDF statistics:
- 150 PDF objects out of 1000 (max. 8388607)
- 119 compressed objects within 2 object streams
- 21 named destinations out of 1000 (max. 500000)
- 72 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 172 PDF objects out of 1000 (max. 8388607)
+ 137 compressed objects within 2 object streams
+ 24 named destinations out of 1000 (max. 500000)
+ 95 words of extra memory for PDF output out of 10000 (max. 10000000)
 

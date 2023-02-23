@@ -54,12 +54,7 @@
 \usepackage{hyperref}
 \usepackage{float}
 
-\begin{knitrout}
-\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 
-
-{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in library(tidyverse): there is no package called 'tidyverse'}}\end{kframe}
-\end{knitrout}
 
 \IfFileExists{upquote.sty}{\usepackage{upquote}}{}
 \begin{document}
@@ -128,18 +123,8 @@ We also note the curious prevalence of reading lines (A Memoir; a Novel). Readin
 \begin{figure}[H]
 \begin{center}
 \begin{knitrout}
-\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
-
-
-{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in top\_books\_counts \%>\% group\_by(year) \%>\% mutate(rank = rank(-x)) \%>\% : could not find function "{}\%>\%"{}}}
-
-{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in eval(expr, envir, enclos): object 'book\_positions\_by\_year' not found}}
-
-{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in strsplit(titles, "{} / "{}): object 'titles' not found}}
-
-{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in plot.default(NULL, type = "{}l"{}, col = "{}black"{}, lwd = 1, main = "{}Most Popular Books 2018-2022"{}, : object 'book\_positions\_by\_year' not found}}
-
-{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in eval(expr, envir, enclos): object 'titles' not found}}\end{kframe}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}
+\includegraphics[width=\maxwidth]{figure/plot3-1} 
 \end{knitrout}
 \end{center}
 \caption{Relative popularity of the most popular physical books 2018-2022}\label{fig:3}
@@ -152,21 +137,12 @@ Figure \ref{fig:4} demonstrates the degree to which current-year popularity is p
 \begin{figure}[H]
 \begin{center}
 \begin{knitrout}
-\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
-
-
-{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in title\_counts\_by\_year \%>\% group\_by(title) \%>\% mutate(prev = lag(x, : could not find function "{}\%>\%"{}}}
-
-{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in is.data.frame(data): object 'curr\_prev\_year\_counts' not found}}
-
-{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in plot(curr\_prev\_year\_counts\$prev, curr\_prev\_year\_counts\$curr, : object 'curr\_prev\_year\_counts' not found}}
-
-{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in abline(reg = curr\_prev\_model, col = "{}red"{}): object 'curr\_prev\_model' not found}}\end{kframe}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}
+\includegraphics[width=\maxwidth]{figure/plot4-1} 
 \end{knitrout}
 \end{center}
 \caption{Current year vs. prior year checkouts, log-log scale}\label{fig:4}
 \end{figure}
-
 
 \subsection{Plot 5: Normalized Increase in Checkouts between Textbooks vs. all Other Books}
 
@@ -180,6 +156,20 @@ Figure \ref{fig:5} compares the normalized increase from the minimum monthly che
 \end{knitrout}
 \end{center}
 \caption{Normalized increase in textbook checkouts compared to all other books}\label{fig:5}
+\end{figure}
+
+\subsection{Plot 6: Distribution of Publication Year of Checkouts between 2018-2022}
+
+Figure \ref{fig:6} compares the distribution of the Publication Year of books checked out during 2018 to 2022. Each individual year is a separate boxplot. We had to limit the selection of books to those published after 1990 as there are 50x more books published after 1990 than before in our dataset. This makes our plots look skewed heavily and not show a plot where information can be visually extracted. We can see that as the year in which the checkout was made, it was more likely for the check out to be published later. We also see that the mean for most of the boxplots hover around 2013 - 2015. This can be explained by multiple factors such as most newly published books coming to the library usually a bit later, and certain old books such as textbooks consistently being checked out even though they made be old. It is also important to note that generally publication years older than 2002 are considered to be outliers.
+
+\begin{figure}[H]
+\begin{center}
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}
+\includegraphics[width=\maxwidth]{figure/plot6-1} 
+\end{knitrout}
+\end{center}
+\caption{A year-year comparision of the distribution of the publication year of books checked from 2018-2022}\label{fig:6}
 \end{figure}
 
 \end{document}

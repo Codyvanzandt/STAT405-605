@@ -252,8 +252,6 @@ Figure \ref{fig:6} compares the distribution of the Publication Year of books ch
 \begin{figure}[H]
 \begin{center}
 <<plot6, echo=FALSE,fig.width=8,fig.height=5>>=
-
-
 df <- checkout_data[checkout_data$PublicationYear != "", ]
 df$PublicationYear <- strtoi(substring(gsub("[^0-9]", "", df$PublicationYear), 1, 4))
 df_1 <- df[!is.na(df$PublicationYear), ]
@@ -264,7 +262,6 @@ df_2 <- df_1[df_1$PublicationYear <= 2020 & df_1$PublicationYear >= mu - 3 * sd_
 
 post1990 <- df_2[df_2$PublicationYear > 1990,]
 boxplot(PublicationYear~CheckoutYear, data=post1990, xlab = "Check Out Year", ylab = "Publication Year", main="Distribution of Publication Year of Checkouts between 2018-2022")
-
 @
 \end{center}
 \caption{A year-year comparision of the distribution of the publication year of books checked from 2018-2022}\label{fig:6}
