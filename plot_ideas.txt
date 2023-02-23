@@ -1,6 +1,11 @@
 Other Ideas
 Top N books, merged by title, (possibly over time?)
 Most popular creators (dividing by number of books? or not?)
+Side-by-side barplots of ebook vs. physical vs. digital for most popuar books.
+Side-by-side barplots of ebook vs. physical vs. digital by topic
+Publisher share of the market over time.
+
+
 
 Ekrem
 Summary of publication year, possibly looking at checkoutYear vs pubYear
