@@ -5,7 +5,7 @@
 \usepackage{float}
 
 <<setup, echo=FALSE,results='hide',warning=FALSE, message=FALSE>>=
-setwd('..')
+setwd('../..')
 source("useful_utils.R")
 library(tidyverse)
 
