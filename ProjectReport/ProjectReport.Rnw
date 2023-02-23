@@ -255,5 +255,25 @@ abline(lm(sort(qa) ~ sort(qt)), col = "red", lwd = 2, lty = 2)
 \caption{Normalized increase in textbook checkouts compared to all other books}\label{fig:5}
 \end{figure}
 
+\subsection{Plot 6: Distribution of Publication Year of Checkouts between 2018-2022}
+Figure \ref{fig:6} compares the distribution of the Publication Year of books checked out during 2018 to 2022. Each individual year is a separate boxplot. We had to limit the selection of books to those published after 1990 as there are 50x more books published after 1990 than before in our dataset. This makes our plots look skewed heavily and not show a plot where information can be visually extracted. We can see that as the year in which the checkout was made, it was more likely for the check out to be published later. We also see that the mean for most of the boxplots hover around 2013 - 2015. This can be explained by multiple factors such as most newly published books coming to the library usually a bit later, and certain old books such as textbooks consistently being checked out even though they made be old. It is also important to note that generally publication years older than 2002 are considered to be outliers.
+\begin{figure}[H]
+\begin{center}
+<<plot6, echo=FALSE,fig.width=8,fig.height=5>>=
+
+
+df <- checkout_data[checkout_data$PublicationYear != "", ]
+df$PublicationYear <- strtoi(substring(gsub("[^0-9]", "", df$PublicationYear), 1, 4))
+df_1 <- df[!is.na(df$PublicationYear), ]
+df_2 <- df_1[df_1$PublicationYear <= 2020 & df_1$PublicationYear >= mu - 3 * sd_, ]
+
+post1990 <- df_2[df_2$PublicationYear > 1990,]
+boxplot(PublicationYear~CheckoutYear, data=post1990, xlab = "Check Out Year", ylab = "Publication Year", main="Distribution of Publication Year of Checkouts between 2018-2022")
+
+@
+\end{center}
+\caption{A year-year comparision of the distribution of the publication year of books checked from 2018-2022}\label{fig:6}
+\end{figure}
+
 
 \end{document}
