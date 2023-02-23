@@ -257,6 +257,9 @@ Figure \ref{fig:6} compares the distribution of the Publication Year of books ch
 df <- checkout_data[checkout_data$PublicationYear != "", ]
 df$PublicationYear <- strtoi(substring(gsub("[^0-9]", "", df$PublicationYear), 1, 4))
 df_1 <- df[!is.na(df$PublicationYear), ]
+sd_ <- sd(df_1$PublicationYear)
+mu <- mean(df_1$PublicationYear)
+
 df_2 <- df_1[df_1$PublicationYear <= 2020 & df_1$PublicationYear >= mu - 3 * sd_, ]
 
 post1990 <- df_2[df_2$PublicationYear > 1990,]
