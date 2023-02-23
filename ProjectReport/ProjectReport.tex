@@ -1,5 +1,4 @@
-
-\documentclass[10pt]{article}\usepackage[]{graphicx}\usepackage[]{color}
+\documentclass[10pt]{article}\usepackage[]{graphicx}\usepackage[]{xcolor}
 % maxwidth is the original width if it is less than linewidth
 % otherwise use linewidth (to make sure the graphics do not exceed the margin)
 \makeatletter
@@ -55,7 +54,12 @@
 \usepackage{hyperref}
 \usepackage{float}
 
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 
+
+{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in library(tidyverse): there is no package called 'tidyverse'}}\end{kframe}
+\end{knitrout}
 
 \IfFileExists{upquote.sty}{\usepackage{upquote}}{}
 \begin{document}
@@ -68,19 +72,27 @@
 \newpage
 
 \section{Introduction}
+
 We present an preliminary examination of 11,749,255 checkouts from the Seattle Public Library system over a five-year period from 2018 to 2022. We intend to use this data -- in concert with book review data from Goodreads -- to examine Seattle's literary tastes and reading habits.
-Animating this analysis are more general questions about the contours of contemporary American readership. 
-Why do some books enjoy widespread acclaim while others fizzle?
-Do popular books explode onto the scene or accumulate readers more gradually?
-How do popular success and critical acclaim differ?
-How has recent publisher conglomeration of publishers changed the literary marketplace? 
-And, ultimately, to what degree can the success or failure of a book be predicted?
-The answers, we hope, will be illuminating for authors, publishers, critics, tastemakers, and readers alike. 
+
+Animating this analysis are more general questions about the contours of contemporary American readership.
+
+\begin{itemize}
+  \item Why do some books enjoy widespread acclaim while others fizzle?
+  \item Do popular books explode onto the scene or accumulate readers more gradually?
+  \item How do popular success and critical acclaim differ?
+  \item How has recent publisher conglomeration of publishers changed the literary marketplace? 
+  \item And, ultimately, to what degree can the success or failure of a book be predicted?
+\end{itemize}
+
+The answers, we hope, will be illuminating for authors, publishers, critics, taste-makers, and readers alike. 
 
 \section{First Plots}
 
 \subsection{Plot 1: Checkouts by Usage Class}
+
 Figure \ref{fig:1} shows the number of physical and digital checkouts from the Seattle Public Library from 2018 to 2022. While the number of digital checkouts has shown consistent and steady growth within this time period, the number of physical checkouts per year has been more sporadic. Most notably, there was significant decrease of physical checkouts in 2020, most likely due to the onset of the COVID-19 pandemic, and the number of physical checkouts per year after 2020 has still not recovered to the levels seen in 2018 and 2019. Because of this downturn in physical checkouts, there were more digital than physical checkouts in years 2020 and 2021.
+
 \begin{figure}[H]
 \begin{center}
 \begin{knitrout}
@@ -107,26 +119,27 @@ Figure \ref{fig:2} shows the seven most popular book subjects of all books check
 
 \subsection{Plot 3: Most Popular Physical Books}
 
-Figure \ref{fig:3} shows the relative popularity of the seven most popular physical books with 
-checkouts in each year between 2018 and 2022. We use "relative" popularity to signify that these are not
-necessarily the books that were most popular in each year. Rather, these are the most popular books
-whose popularity endured over the period in question. Novels and memoirs dominate, although their 
-popularity curves exhibit a marked difference: popular memoirs (Educated; Becoming) appear to lack the staying
-power of similarly popular novels (Where the Crawdads Sing; There There; The Overstory). This figure could serve as ground zero 
-for an investigation into the popularity curves and how they vary both within and across generic boundaries. 
-We also note the curious prevalence of reading lines (A Memoir; a Novel). Reading lines have a long and complex history, 
-beginning with 17th century publishers who sought to delineate new, experimentally-realistic work from older romances and epics. 
-Early 20th century writers, by contrast, often troubled this binary by affixing "a Novel" to works that few readers would
-deem "realistic." Finally, post-45 American authors and publishers used (and continue to use!) reading lines
-to assert, aspirationally, that their book belongs among that most "serious" and "literary" in-group: prizewinners.
-An examination linking reading lines to popularity certainly bears further investigation. 
+Figure \ref{fig:3} shows the relative popularity of the seven most popular physical books with checkouts in each year between 2018 and 2022. We use "relative" popularity to signify that these are not necessarily the books that were most popular in each year. Rather, these are the most popular books whose popularity endured over the period in question.
 
+Novels and memoirs dominate, although their popularity curves exhibit a marked difference: popular memoirs (Educated; Becoming) appear to lack the staying power of similarly popular novels (Where the Crawdads Sing; There There; The Overstory). This figure could serve as ground zero for an investigation into the popularity curves and how they vary both within and across generic boundaries.
+
+We also note the curious prevalence of reading lines (A Memoir; a Novel). Reading lines have a long and complex history, beginning with 17th century publishers who sought to delineate new, experimentally-realistic work from older romances and epics. Early 20th century writers, by contrast, often troubled this binary by affixing "a Novel" to works that few readers would deem "realistic." Finally, post-45 American authors and publishers used (and continue to use!) reading lines to assert, aspirationally, that their book belongs among that most "serious" and "literary" in-group: prizewinners. An examination linking reading lines to popularity certainly bears further investigation. 
 
 \begin{figure}[H]
 \begin{center}
 \begin{knitrout}
-\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}
-\includegraphics[width=\maxwidth]{figure/plot3-1} 
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+
+
+{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in top\_books\_counts \%>\% group\_by(year) \%>\% mutate(rank = rank(-x)) \%>\% : could not find function "{}\%>\%"{}}}
+
+{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in eval(expr, envir, enclos): object 'book\_positions\_by\_year' not found}}
+
+{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in strsplit(titles, "{} / "{}): object 'titles' not found}}
+
+{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in plot.default(NULL, type = "{}l"{}, col = "{}black"{}, lwd = 1, main = "{}Most Popular Books 2018-2022"{}, : object 'book\_positions\_by\_year' not found}}
+
+{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in eval(expr, envir, enclos): object 'titles' not found}}\end{kframe}
 \end{knitrout}
 \end{center}
 \caption{Relative popularity of the most popular physical books 2018-2022}\label{fig:3}
@@ -134,21 +147,39 @@ An examination linking reading lines to popularity certainly bears further inves
 
 \subsection{Plot 4: Prior Year vs. Current Year Popularity}
 
-Figure \ref{fig:4} demonstrates the degree to which current-year popularity is predicted by prior-year popularity for years 
-2019-2022. We present a log-log plot of current vs. prior popularity and overlay a line of best fit. 
-Prior popularity seems a fair -- though by no means perfect -- predictor of future popularity. Noticeably, there two groups 
-straddle the line of best fit: one with over-predicted popularity and one under-predicted. These groups might be a 
-consequence of the nature of popularity; namely, it's either rising or falling. Or this early analysis could be indentifying
-two categorically different groups of books: successes and flops. 
+Figure \ref{fig:4} demonstrates the degree to which current-year popularity is predicted by prior-year popularity for years 2019-2022. We present a log-log plot of current vs. prior popularity and overlay a line of best fit. Prior popularity seems a fair -- though by no means perfect -- predictor of future popularity. Noticeably, there two groups straddle the line of best fit: one with over-predicted popularity and one under-predicted. These groups might be a consequence of the nature of popularity; namely, it's either rising or falling. Or this early analysis could be indentifying two categorically different groups of books: successes and flops. 
+
+\begin{figure}[H]
+\begin{center}
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+
+
+{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in title\_counts\_by\_year \%>\% group\_by(title) \%>\% mutate(prev = lag(x, : could not find function "{}\%>\%"{}}}
+
+{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in is.data.frame(data): object 'curr\_prev\_year\_counts' not found}}
+
+{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in plot(curr\_prev\_year\_counts\$prev, curr\_prev\_year\_counts\$curr, : object 'curr\_prev\_year\_counts' not found}}
+
+{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in abline(reg = curr\_prev\_model, col = "{}red"{}): object 'curr\_prev\_model' not found}}\end{kframe}
+\end{knitrout}
+\end{center}
+\caption{Current year vs. prior year checkouts, log-log scale}\label{fig:4}
+\end{figure}
+
+
+\subsection{Plot 5: Normalized Increase in Checkouts between Textbooks vs. all Other Books}
+
+Figure \ref{fig:5} compares the normalized increase from the minimum monthly checkouts between textbooks and all other books including the years 2018-2022. The Q-Q plot compares the quantiles of the total checkouts for each month from the two book categories along with a line of best fit. While both sets of data seem to be distributed roughly the same, there is a slight increase in textbook checkouts in the summer months leading up to the fall semester that drops off once the fall has started. While this is a good start, future work would inclduing looking more in depth at the difference between years during the COVID-19 pandemic and the years before.
 
 \begin{figure}[H]
 \begin{center}
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}
-\includegraphics[width=\maxwidth]{figure/plot4-1} 
+\includegraphics[width=\maxwidth]{figure/plot5-1} 
 \end{knitrout}
 \end{center}
-\caption{Current year vs. prior year checkouts, log-log scale}\label{fig:4}
+\caption{Normalized increase in textbook checkouts compared to all other books}\label{fig:5}
 \end{figure}
 
 \end{document}
