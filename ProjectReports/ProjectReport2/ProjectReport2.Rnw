@@ -74,16 +74,93 @@ plot1 + geom_bar(aes(fill=Subjects), width=0.5) +
 \caption{Subject Breakdown by Publisher}\label{fig:1}
 \end{figure}
 
-\subsection{Plot 2}
+\subsection{Logarithmic Scatter Plot for all Monthly Normalized Increase in Checkouts for Textbooks vs All Books}
 
-Figure \ref{fig:2} shows...
+Figure \ref{fig:2} shows the monthly result from each year for the normalized increase in checkouts over the minimum month for that year, on a logarithmic scale. The idea behind the normalized increase method is to highlight the changes between months in the same year as each year is compared to the same reference value, rather than compare the absolute values between months, which may not differ by much. This can also serve as a way to compare other years, as each shape of the point corresponds to a different year, 2018-2022. 
+
+This logarithmic scatter plot is able to give a useful comparison between years, as months for most years have relatively the same magnitude in their normalized increase in checkouts over their minimum checkout month, for both textbooks and all books. But there is an exception for some months of 2020, as the normalized increase over the minimum month is many orders of magnitude greater than for any other years. The explanation for this is that at the beginning of the COVID-19 pandemic, the library suffered a severe lack in checkouts, making the monthly minimum number of books checked out significantly lower than usual, which when compared to the normal pre-COVID-19 months through the normalized increase method describes the normal months as having an increase that is orders of magnitude greater rather than a smaller ratio increase as was seen for the other years.
 
 \begin{figure}[H]
 \begin{center}
 <<plot2, echo=FALSE,fig.width=7,fig.height=5>>=
+# publishers by year, only books included
+# 2018
+book2018 <- checkouts_2018_2022[(checkouts_2018_2022$CheckoutYear == 2018) & (checkouts_2018_2022$MaterialType == "BOOK") , ]
+# 2018 textbook
+txtbook2018 <- table(book2018$CheckoutMonth[log_textbook])
+txtbook2018 <- txtbook2018 / min(txtbook2018)
+txtbook2018 <- c(unname(txtbook2018 - min(txtbook2018)))
+# 2018 all books
+allbook2018 <- table(book2018$CheckoutMonth[!log_textbook])
+allbook2018 <- allbook2018 / min(allbook2018)
+allbook2018 <- c(unname(allbook2018 - min(allbook2018)))
+
+# 2019
+book2019 <- checkouts_2018_2022[(checkouts_2018_2022$CheckoutYear == 2019) & (checkouts_2018_2022$MaterialType == "BOOK") , ]
+# 2019 textbook
+txtbook2019 <- table(book2019$CheckoutMonth[log_textbook])
+txtbook2019 <- txtbook2019 / min(txtbook2019)
+txtbook2019 <- c(unname(txtbook2019 - min(txtbook2019)))
+# 2019 all books
+allbook2019 <- table(book2019$CheckoutMonth[!log_textbook])
+allbook2019 <- allbook2019 / min(allbook2019)
+allbook2019 <- c(unname(allbook2019 - min(allbook2019)))
+
+# 2020
+book2020 <- checkouts_2018_2022[(checkouts_2018_2022$CheckoutYear == 2020) & (checkouts_2018_2022$MaterialType == "BOOK") , ]
+# 2020 textbook
+txtbook2020 <- table(book2020$CheckoutMonth[log_textbook])
+txtbook2020 <- txtbook2020 / min(txtbook2020)
+txtbook2020 <- c(unname(txtbook2020 - min(txtbook2020)))
+# 2020 all books
+allbook2020 <- table(book2020$CheckoutMonth[!log_textbook])
+allbook2020 <- allbook2020 / min(allbook2020)
+allbook2020 <- c(unname(allbook2020 - min(allbook2020)))
+
+# 2021
+book2021 <- checkouts_2018_2022[(checkouts_2018_2022$CheckoutYear == 2021) & (checkouts_2018_2022$MaterialType == "BOOK") , ]
+# 2021 textbook
+txtbook2021 <- table(book2021$CheckoutMonth[log_textbook])
+txtbook2021 <- txtbook2021 / min(txtbook2021)
+txtbook2021 <- c(unname(txtbook2021 - min(txtbook2021)))
+# 2021 all books
+allbook2021 <- table(book2021$CheckoutMonth[!log_textbook])
+allbook2021 <- allbook2021 / min(allbook2021)
+allbook2021 <- c(unname(allbook2021 - min(allbook2021)))
+
+# 2022
+book2022 <- checkouts_2018_2022[(checkouts_2018_2022$CheckoutYear == 2022) & (checkouts_2018_2022$MaterialType == "BOOK") , ]
+# 2022 textbook
+txtbook2022 <- table(book2022$CheckoutMonth[log_textbook])
+txtbook2022 <- txtbook2022 / min(txtbook2022)
+txtbook2022 <- c(unname(txtbook2022 - min(txtbook2022)))
+# 2022 all books
+allbook2022 <- table(book2022$CheckoutMonth[!log_textbook])
+allbook2022 <- allbook2022 / min(allbook2022)
+allbook2022 <- c(unname(allbook2022 - min(allbook2022)))
+
+# dataframe
+SF_data <- data.frame(txt = c(txtbook2018, txtbook2019, txtbook2020, txtbook2021, txtbook2022), 
+                      all = c(allbook2018, allbook2019, allbook2020, allbook2021, allbook2022), 
+                      Year = c( rep(2018, times = length(txtbook2018)), 
+                                rep(2019, times = length(txtbook2019)),
+                                rep(2020, times = length(txtbook2020)),
+                                rep(2021, times = length(txtbook2021)),
+                                rep(2022, times = length(txtbook2022))
+                                ))
+
+# ggplot time
+ggplot(data = SF_data) + 
+  aes(x = log(txt), y = log(all), shape = Year) + 
+  geom_point() + 
+  scale_shape_binned(n.breaks = 6, breaks = c(2018, 2019, 2020, 2021, 2022)) + 
+  labs(x = "Logarithm of Normalized Increase in Textbook Checkouts", 
+       y = "Logarithm of Normalized Increase in All Book Checkouts", 
+       title = "Logarithmic Scatter Plot of the Normalized Increase in Textbook vs All Book Checkouts",
+       subtitle = "For all months from 2018-2022")
 @
-  \end{center}
-\caption{Caption}\label{fig:2}
+\end{center}
+\caption{Logarithmic Scatter Plot of Normalized Increase in Book Checkouts}\label{fig:2}
 \end{figure}
 
 
