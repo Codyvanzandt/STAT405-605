@@ -6,6 +6,7 @@
 
 <<dependencies, echo=FALSE,results='hide',warning=FALSE, message=FALSE>>=
 library(ggplot2)
+library(ggbreak)
 library(tidyverse)
 @
 
@@ -177,16 +178,47 @@ Figure \ref{fig:3} shows...
 \end{figure}
 
 
-\subsection{Plot 4}
+\subsection{Checkouts by Material Type}
 
-Figure \ref{fig:4} shows...
+Figure \ref{fig:4} shows the number of checkouts from 2018 to 2022 by material type. The material type classification splits materials checked out from the Seattle Public Library into common categories including books, e-books, audio-books, songs, television, comics, movies, etc. Additionally, the usage class of each material type, i.e. whether it is physical or digital, is indicated by the color of each bar. The majority of checkouts were understandably books, e-books, and audio-books, however nearly 1 million checkouts each were also from video and sound discs. Apart from these 5 material types there is a significant decrease in checkouts, with no other material types exceeding 50000 checkouts. The most checked out of these less popular material types are songs, music, prints, television, and movies.
 
 \begin{figure}[H]
 \begin{center}
 <<plot4, echo=FALSE,fig.width=7,fig.height=5>>=
+  
+  # Get Checkouts by Material Type
+  mat_types <- data.frame(table(checkout_data$MaterialType))
+colnames(mat_types) <- c("MaterialType", "NumCheckouts")
+
+# Sort in descending order
+mat_types <- mat_types[with(mat_types,order(-NumCheckouts)),]
+
+# Get Usage Class for each Material Type
+usage_class = c()
+for (type in mat_types$MaterialType){
+  usage_class[type] = checkout_data$UsageClass[checkout_data$MaterialType == type][1]
+}
+mat_types["UsageClass"] = as.factor(usage_class)
+
+# Add OTHER category as sum of all but first 15 columns, so that bar chart has top 15 material types and everything else under OTHER
+levels(mat_types$MaterialType) <- c(levels(mat_types$MaterialType), 'OTHER')
+levels(mat_types$UsageClass) <- c(levels(mat_types$UsageClass), 'Both')
+mat_types[16,] = c('OTHER', sum(mat_types$NumCheckouts[16:nrow(mat_types)]), 'Both')
+
+# Drop extra columns, resolve data types
+mat_types <- mat_types[-c(17:nrow(mat_types)),]
+mat_types$NumCheckouts <- as.numeric(mat_types$NumCheckouts)
+
+ggplot(mat_types) + 
+  aes(x = factor(MaterialType, level = mat_types$MaterialType), y = NumCheckouts, fill = factor(UsageClass, level = c("Physical", "Digital", "Both"))) +
+  geom_col() + 
+  theme(text = element_text(size=8), axis.text.x=element_text(angle = -90, vjust = 0.5, hjust=0)) +
+  labs(title = "Number of Checkouts by Material Type from 2018 to 2022", x = "Material Type", y = "Number of Checkouts", fill = "Usage Class") +
+  scale_y_cut(breaks=c(50000), which=c(1, 2), scales=c(5, 1), space = 0.02) +
+  scale_x_discrete(labels = function(x) wrap.labels(x, 10))
 @
   \end{center}
-\caption{Caption}\label{fig:4}
+\caption{Checkouts by Material Type}\label{fig:4}
 \end{figure}
 
 \subsection{Plot 5}
