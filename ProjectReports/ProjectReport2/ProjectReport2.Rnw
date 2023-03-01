@@ -4,12 +4,15 @@
 \usepackage{hyperref}
 \usepackage{float}
 
+<<dependencies, echo=FALSE,results='hide',warning=FALSE, message=FALSE>>=
+library(ggplot2)
+library(tidyverse)
+@
+
 <<setup, echo=FALSE,results='hide',warning=FALSE, message=FALSE>>=
 setwd('../..')
 source("useful_utils.R")
-library(tidyverse)
-
-checkout_data <- get_checkouts(2018)
+checkout_data <- get_checkouts(2018:2022)
 @
 
 \begin{document}
@@ -35,22 +38,41 @@ Animating this analysis are more general questions about the contours of contemp
   \item And, ultimately, to what degree can the success or failure of a book be predicted?
 \end{itemize}
 
-The answers, we hope, will be illuminating for authors, publishers, critics, taste-makers, and readers alike. 
+The answers, we hope, will be illuminating for authors, publishers, critics, taste-makers, and readers alike.
 
-\section{First Plots}
+\section{Plots}
 
-\subsection{Plot 1}
+\subsection{Subject Breakdown by Publisher}
 
-Figure \ref{fig:1} shows...
+Figure \ref{fig:1} shows the four most popular publishers based on the number of their books checked out over the 2018-2022 period. Each color on the bar represents the primary subject of a book that was checked out and the size of the colored region shows the proportion of the publisher's books with the same subject. The specific subjects were chosen from the most popular subjects of all books checked out from the library. The corresponding pie-chart was present in the previous draft of the report and can be found in the appendix of this draft.
+
+This bar chart shows that fiction books are most frequently checked out from the top publishers at the library. We expected nonfiction to be the second most common subject based on our previous findings of subject popularity; however, nonfiction books do not seem to be as popular from these publishers. One explanation might be that nonfiction tends to show up as a secondary subject for most books, although further exploration would be needed to confirm.
 
 \begin{figure}[H]
 \begin{center}
 <<plot1, echo=FALSE,fig.width=7,fig.height=5>>=
-@
-  \end{center}
-\caption{Caption}\label{fig:1}
-\end{figure}
+top_publishers <- names(sort(table(checkout_data$Publisher), decreasing=T)[1:4])
+top_subjects <- c("Fiction", "Nonfiction", "Literature", "Juvenile Fiction", 
+                  "Romance", "Mystery", "Fantasy")
+df1 <- checkout_data[checkout_data$Publisher %in% top_publishers &
+                       checkout_data$Subjects != "",
+                     c("Publisher", "Subjects")]
+df1$Subjects <- sapply(strsplit(df1$Subjects, ", "), "[[", 1)
+df1$Subjects <- ifelse(df1$Subjects %in% top_subjects, 
+                       df1$Subjects, "Other")
 
+plot1 <- ggplot(df1, aes(Publisher))
+plot1 + geom_bar(aes(fill=Subjects), width=0.5) +
+  scale_x_discrete(labels = function(x) wrap.it(x, 20)) +
+  theme(axis.text.x = element_text(margin=margin(t=5, r=0, b=10, l=0)),
+        axis.text.y = element_text(margin=margin(t=0, r=5, b=0, l=10))) +
+  labs(title="Subject Breakdown by Publisher", 
+       subtitle="Category-Wise Bar Chart") +
+  ylab("Count")
+@
+\end{center}
+\caption{Subject Breakdown by Publisher}\label{fig:1}
+\end{figure}
 
 \subsection{Plot 2}
 
