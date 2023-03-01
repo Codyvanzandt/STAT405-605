@@ -86,7 +86,7 @@ This logarithmic scatter plot is able to give a useful comparison between years,
 <<plot2, echo=FALSE,fig.width=7,fig.height=5>>=
 # publishers by year, only books included
 # 2018
-book2018 <- checkouts_2018_2022[(checkouts_2018_2022$CheckoutYear == 2018) & (checkouts_2018_2022$MaterialType == "BOOK") , ]
+book2018 <- checkout_data[(checkout_data$CheckoutYear == 2018) & (checkout_data$MaterialType == "BOOK") , ]
 # 2018 textbook
 txtbook2018 <- table(book2018$CheckoutMonth[log_textbook])
 txtbook2018 <- txtbook2018 / min(txtbook2018)
@@ -97,7 +97,7 @@ allbook2018 <- allbook2018 / min(allbook2018)
 allbook2018 <- c(unname(allbook2018 - min(allbook2018)))
 
 # 2019
-book2019 <- checkouts_2018_2022[(checkouts_2018_2022$CheckoutYear == 2019) & (checkouts_2018_2022$MaterialType == "BOOK") , ]
+book2019 <- checkout_data[(checkout_data$CheckoutYear == 2019) & (checkout_data$MaterialType == "BOOK") , ]
 # 2019 textbook
 txtbook2019 <- table(book2019$CheckoutMonth[log_textbook])
 txtbook2019 <- txtbook2019 / min(txtbook2019)
@@ -108,7 +108,7 @@ allbook2019 <- allbook2019 / min(allbook2019)
 allbook2019 <- c(unname(allbook2019 - min(allbook2019)))
 
 # 2020
-book2020 <- checkouts_2018_2022[(checkouts_2018_2022$CheckoutYear == 2020) & (checkouts_2018_2022$MaterialType == "BOOK") , ]
+book2020 <- checkout_data[(checkout_data$CheckoutYear == 2020) & (checkout_data$MaterialType == "BOOK") , ]
 # 2020 textbook
 txtbook2020 <- table(book2020$CheckoutMonth[log_textbook])
 txtbook2020 <- txtbook2020 / min(txtbook2020)
@@ -119,7 +119,7 @@ allbook2020 <- allbook2020 / min(allbook2020)
 allbook2020 <- c(unname(allbook2020 - min(allbook2020)))
 
 # 2021
-book2021 <- checkouts_2018_2022[(checkouts_2018_2022$CheckoutYear == 2021) & (checkouts_2018_2022$MaterialType == "BOOK") , ]
+book2021 <- checkout_data[(checkout_data$CheckoutYear == 2021) & (checkout_data$MaterialType == "BOOK") , ]
 # 2021 textbook
 txtbook2021 <- table(book2021$CheckoutMonth[log_textbook])
 txtbook2021 <- txtbook2021 / min(txtbook2021)
@@ -130,7 +130,7 @@ allbook2021 <- allbook2021 / min(allbook2021)
 allbook2021 <- c(unname(allbook2021 - min(allbook2021)))
 
 # 2022
-book2022 <- checkouts_2018_2022[(checkouts_2018_2022$CheckoutYear == 2022) & (checkouts_2018_2022$MaterialType == "BOOK") , ]
+book2022 <- checkout_data[(checkout_data$CheckoutYear == 2022) & (checkout_data$MaterialType == "BOOK") , ]
 # 2022 textbook
 txtbook2022 <- table(book2022$CheckoutMonth[log_textbook])
 txtbook2022 <- txtbook2022 / min(txtbook2022)
