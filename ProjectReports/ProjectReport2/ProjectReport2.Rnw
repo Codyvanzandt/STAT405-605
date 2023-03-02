@@ -6,7 +6,10 @@
 
 <<dependencies, echo=FALSE,results='hide',warning=FALSE, message=FALSE>>=
 library(ggplot2)
+library(ggbreak)
 library(tidyverse)
+library(dplyr)
+library(fpp2)
 @
 
 <<setup, echo=FALSE,results='hide',warning=FALSE, message=FALSE>>=
@@ -74,67 +77,266 @@ plot1 + geom_bar(aes(fill=Subjects), width=0.5) +
 \caption{Subject Breakdown by Publisher}\label{fig:1}
 \end{figure}
 
-\subsection{Plot 2}
+\subsection{Logarithmic Scatter Plot for all Monthly Normalized Increase in Checkouts for Textbooks vs All Books}
 
-Figure \ref{fig:2} shows...
+Figure \ref{fig:2} shows the monthly result from each year for the normalized increase in checkouts over the minimum month for that year, on a logarithmic scale. The idea behind the normalized increase method is to highlight the changes between months in the same year as each year is compared to the same reference value, rather than compare the absolute values between months, which may not differ by much. This can also serve as a way to compare other years, as each shape of the point corresponds to a different year, 2018-2022. 
+
+This logarithmic scatter plot is able to give a useful comparison between years, as months for most years have relatively the same magnitude in their normalized increase in checkouts over their minimum checkout month, for both textbooks and all books. But there is an exception for some months of 2020, as the normalized increase over the minimum month is many orders of magnitude greater than for any other years. The explanation for this is that at the beginning of the COVID-19 pandemic, the library suffered a severe lack in checkouts, making the monthly minimum number of books checked out significantly lower than usual, which when compared to the normal pre-COVID-19 months through the normalized increase method describes the normal months as having an increase that is orders of magnitude greater rather than a smaller ratio increase as was seen for the other years.
 
 \begin{figure}[H]
 \begin{center}
 <<plot2, echo=FALSE,fig.width=7,fig.height=5>>=
+# find textbook publishers
+
+library(stringr)
+
+pub_names <- tolower(checkout_data$Publisher)
+
+log_cengage <- str_detect(pub_names, "cengage learning")
+log_macmillan <- str_detect(pub_names, "macmillan")
+log_mcgrawhill <- str_detect(pub_names, "mcgraw")
+log_pearson <- str_detect(pub_names, "pearson")
+log_wiley <- str_detect(pub_names, "wiley")
+log_scholastic <- str_detect(pub_names, "scholastic")
+log_harcourt <- str_detect(pub_names, "harcourt")
+log_houghton <- str_detect(pub_names, "houghton")
+log_wolters <- str_detect(pub_names, "wolters")
+
+log_textbook <- log_cengage | log_macmillan | log_mcgrawhill | log_pearson | log_wiley | log_scholastic | log_harcourt | log_houghton | log_wolters
+
+# publishers by year, only books included
+# 2018
+book2018 <- checkout_data[(checkout_data$CheckoutYear == 2018) & (checkout_data$MaterialType == "BOOK") , ]
+# 2018 textbook
+txtbook2018 <- table(book2018$CheckoutMonth[log_textbook])
+txtbook2018 <- txtbook2018 / min(txtbook2018)
+txtbook2018 <- c(unname(txtbook2018 - min(txtbook2018)))
+# 2018 all books
+allbook2018 <- table(book2018$CheckoutMonth[!log_textbook])
+allbook2018 <- allbook2018 / min(allbook2018)
+allbook2018 <- c(unname(allbook2018 - min(allbook2018)))
+
+# 2019
+book2019 <- checkout_data[(checkout_data$CheckoutYear == 2019) & (checkout_data$MaterialType == "BOOK") , ]
+# 2019 textbook
+txtbook2019 <- table(book2019$CheckoutMonth[log_textbook])
+txtbook2019 <- txtbook2019 / min(txtbook2019)
+txtbook2019 <- c(unname(txtbook2019 - min(txtbook2019)))
+# 2019 all books
+allbook2019 <- table(book2019$CheckoutMonth[!log_textbook])
+allbook2019 <- allbook2019 / min(allbook2019)
+allbook2019 <- c(unname(allbook2019 - min(allbook2019)))
+
+# 2020
+book2020 <- checkout_data[(checkout_data$CheckoutYear == 2020) & (checkout_data$MaterialType == "BOOK") , ]
+# 2020 textbook
+txtbook2020 <- table(book2020$CheckoutMonth[log_textbook])
+txtbook2020 <- txtbook2020 / min(txtbook2020)
+txtbook2020 <- c(unname(txtbook2020 - min(txtbook2020)))
+# 2020 all books
+allbook2020 <- table(book2020$CheckoutMonth[!log_textbook])
+allbook2020 <- allbook2020 / min(allbook2020)
+allbook2020 <- c(unname(allbook2020 - min(allbook2020)))
+
+# 2021
+book2021 <- checkout_data[(checkout_data$CheckoutYear == 2021) & (checkout_data$MaterialType == "BOOK") , ]
+# 2021 textbook
+txtbook2021 <- table(book2021$CheckoutMonth[log_textbook])
+txtbook2021 <- txtbook2021 / min(txtbook2021)
+txtbook2021 <- c(unname(txtbook2021 - min(txtbook2021)))
+# 2021 all books
+allbook2021 <- table(book2021$CheckoutMonth[!log_textbook])
+allbook2021 <- allbook2021 / min(allbook2021)
+allbook2021 <- c(unname(allbook2021 - min(allbook2021)))
+
+# 2022
+book2022 <- checkout_data[(checkout_data$CheckoutYear == 2022) & (checkout_data$MaterialType == "BOOK") , ]
+# 2022 textbook
+txtbook2022 <- table(book2022$CheckoutMonth[log_textbook])
+txtbook2022 <- txtbook2022 / min(txtbook2022)
+txtbook2022 <- c(unname(txtbook2022 - min(txtbook2022)))
+# 2022 all books
+allbook2022 <- table(book2022$CheckoutMonth[!log_textbook])
+allbook2022 <- allbook2022 / min(allbook2022)
+allbook2022 <- c(unname(allbook2022 - min(allbook2022)))
+
+# dataframe
+SF_data <- data.frame(txt = c(txtbook2018, txtbook2019, txtbook2020, txtbook2021, txtbook2022), 
+                      all = c(allbook2018, allbook2019, allbook2020, allbook2021, allbook2022), 
+                      Year = c( rep("2018", times = 12), 
+                                rep("2019", times = 12),
+                                rep("2020", times = 12),
+                                rep("2021", times = 12),
+                                rep("2022", times = 12)
+                                ))
+
+# ggplot time
+ggplot(data = SF_data) + 
+  aes(x = log(txt), y = log(all), shape = Year) + 
+  geom_point() + 
+  labs(x = "Logarithm of Normalized Increase in Textbook Checkouts", 
+       y = "Logarithm of Normalized Increase in All Book Checkouts", 
+       title = "Log-Log plot of the Normalized Increase in Textbook vs All Book Checkouts",
+       subtitle = "For all months from 2018-2022")
 @
-  \end{center}
-\caption{Caption}\label{fig:2}
+\end{center}
+\caption{Logarithmic Scatter Plot of Normalized Increase in Book Checkouts}\label{fig:2}
 \end{figure}
 
 
-\subsection{Plot 3}
+\subsection{Top Publisher Audiobook Checkouts}
 
-Figure \ref{fig:3} shows...
+Figure \ref{fig:3} shows number of audiobook checkouts for the 8 top audiobook publishers,
+2018-2022. Even in this rather cursory glance, a couple of trends catch the eye. 
+First, international publishing conglomerates -- known in the trade as the "Big Five" -- dominate. 
+Four of the Big Five make the list by name: Hachette, HarperCollins, Macmillan, and Simon \& Schuster. The fifth Big Five publisher, Penguin Random House, also makes the list through its imprint,
+Books on Tape. 
+In fact, the only independent publisher on the list is Blackstone,
+as conglomerate RBMedia operates both Tantor Media and Recorded Books.
+
+It seems without coincidence that the only independent publisher on the list,
+Blackstone, is also the only top publisher to see its checkouts decline over the period.
+There is, then, perhaps a larger story to be uncovered about the conglomeration of audiobook publishing and its deleterious effects on independent operators.
+
+As an aside, Hachette Audio's near-vertical rise in checkouts bears further study.
+One wonders whether the massive publisher began a new acquisition or 
+distribution strategy in early 2020. 
 
 \begin{figure}[H]
 \begin{center}
 <<plot3, echo=FALSE,fig.width=7,fig.height=5>>=
+top_book_publishers <- checkout_data %>%
+  filter(MaterialType == "AUDIOBOOK") %>%
+  group_by(Publisher) %>%
+  summarize(total_checkouts = sum(Checkouts)) %>%
+  top_n(8, wt=total_checkouts)
+
+publisher_data <- checkout_data %>%
+  filter(MaterialType == "AUDIOBOOK",
+         Publisher %in% top_book_publishers$Publisher) %>%
+  group_by(CheckoutYear, CheckoutMonth, Publisher) %>%
+  mutate(Publisher = recode(
+    Publisher,
+    `Blackstone Audio, Inc.`="Blackstone",
+    `Books on Tape`="Books on Tape",
+    `Hachette Audio`="Hachette",
+    `HarperCollins Publishers Inc.`="HarperCollins",
+    `Macmillan Audio`= "Macmillian",
+    `Recorded Books, LLC` = "Recorded Books",
+    `Simon & Schuster - Audiobooks` = "Simon & Schuster",
+    `Tantor Media, Inc` = "Tantor Media"
+  )) %>%
+  mutate(total_checkouts = sum(Checkouts)) %>%
+  mutate(date = as.Date(paste0(CheckoutYear,"-",CheckoutMonth,"-01"), "%Y-%m-%d")) %>%
+  ungroup() %>%
+  select(Publisher, date, total_checkouts) %>%
+  arrange(desc(total_checkouts))
+
+ggplot(publisher_data) +
+  geom_line(mapping=aes(x=date, y=total_checkouts)) +
+  facet_wrap(~Publisher, nrow = 2,) +
+  labs(
+    title = "Most Popular Audiobook Publishers",
+    x = "Time",
+    y = "Monthly Checkouts"
+  )
 @
   \end{center}
-\caption{Caption}\label{fig:3}
+\caption{Checkouts for the top eight audiobook publishers, 2018-2022}\label{fig:3}
 \end{figure}
 
 
-\subsection{Plot 4}
+\subsection{Checkouts by Material Type}
 
-Figure \ref{fig:4} shows...
+Figure \ref{fig:4} shows the number of checkouts from 2018 to 2022 by material type. The material type classification splits materials checked out from the Seattle Public Library into common categories including books, e-books, audio-books, songs, television, comics, movies, etc. Additionally, the usage class of each material type, i.e. whether it is physical or digital, is indicated by the color of each bar. The majority of checkouts were understandably books, e-books, and audio-books, however nearly 1 million checkouts each were also from video and sound discs. Apart from these 5 material types there is a significant decrease in checkouts, with no other material types exceeding 50000 checkouts. The most checked out of these less popular material types are songs, music, prints, television, and movies.
 
 \begin{figure}[H]
 \begin{center}
 <<plot4, echo=FALSE,fig.width=7,fig.height=5>>=
+  
+  # Get Checkouts by Material Type
+  mat_types <- data.frame(table(checkout_data$MaterialType))
+colnames(mat_types) <- c("MaterialType", "NumCheckouts")
+
+# Sort in descending order
+mat_types <- mat_types[with(mat_types,order(-NumCheckouts)),]
+
+# Get Usage Class for each Material Type
+usage_class = c()
+for (type in mat_types$MaterialType){
+  usage_class[type] = checkout_data$UsageClass[checkout_data$MaterialType == type][1]
+}
+mat_types["UsageClass"] = as.factor(usage_class)
+
+# Add OTHER category as sum of all but first 15 columns, so that bar chart has top 15 material types and everything else under OTHER
+levels(mat_types$MaterialType) <- c(levels(mat_types$MaterialType), 'OTHER')
+levels(mat_types$UsageClass) <- c(levels(mat_types$UsageClass), 'Both')
+mat_types[16,] = c('OTHER', sum(mat_types$NumCheckouts[16:nrow(mat_types)]), 'Both')
+
+# Drop extra columns, resolve data types
+mat_types <- mat_types[-c(17:nrow(mat_types)),]
+mat_types$NumCheckouts <- as.numeric(mat_types$NumCheckouts)
+
+ggplot(mat_types) + 
+  aes(x = factor(MaterialType, level = mat_types$MaterialType), y = NumCheckouts, fill = factor(UsageClass, level = c("Physical", "Digital", "Both"))) +
+  geom_col() + 
+  theme(text = element_text(size=8), axis.text.x=element_text(angle = -90, vjust = 0.5, hjust=0)) +
+  labs(title = "Number of Checkouts by Material Type from 2018 to 2022", x = "Material Type", y = "Number of Checkouts", fill = "Usage Class") +
+  scale_y_cut(breaks=c(50000), which=c(1, 2), scales=c(5, 1), space = 0.02) +
+  scale_x_discrete(labels = function(x) wrap.labels(x, 10))
 @
   \end{center}
-\caption{Caption}\label{fig:4}
+\caption{Checkouts by Material Type}\label{fig:4}
 \end{figure}
 
-\subsection{Plot 5}
+\subsection{Physical Book Checkout Over Time}
 
-Figure \ref{fig:5} shows...
+Figure \ref{fig:5} is a seasonal polar plot that shows the physical book checkout count over time from 2018 to 2022 in the Seattle Public library. The values range from 20 to 30000 total checkouts per month. The effect of covid can be seen clearly as the checkout quantity from March 2020 to 2021 decreases significantly until July 2021 where it recovers to roughly half the amount of 2018 and 2018. The most popular months seem to be January, August, and October. A most likely explanation is due to the start of school, the library becomes more active within those months. February and December are the months with the least checkouts most likely due to February being the month with the least days and December being where most students being on vacation and not going to the library.
+
 
 \begin{figure}[H]
 \begin{center}
-<<plot5, echo=FALSE,fig.width=7,fig.height=5>>=
+<<plot5, echo=FALSE,fig.width=7,fig.height=5, warning=FALSE, message=FALSE>>=
+df <- checkout_data[checkout_data$PublicationYear != "", ]
+
+df$PublicationYear <- strtoi(substring(gsub("[^0-9]", "", df$PublicationYear), 1, 4))
+
+df_1 <- df[!is.na(df$PublicationYear), ]
+
+# summary(df_1$PublicationYear)
+sd_ <- sd(df_1$PublicationYear)
+mu <- mean(df_1$PublicationYear)
+
+df_2 <- df_1[df_1$PublicationYear <= 2022 & df_1$PublicationYear >= mu - 3 * sd_, ]
+df_3 <- df_2[df_2$MaterialType == "BOOK", ]
+toPlot <- df_3 %>% group_by(CheckoutMonth, CheckoutYear) %>% summarize(checkouts = sum(Checkouts))
+
+
+toPlot_ord <- toPlot[order(toPlot$CheckoutYear),]
+toPlot.ts <- ts((toPlot_ord$checkouts), frequency = 12, start=c(2018, 1))
+
+ggseasonplot(x = toPlot.ts, polar = TRUE, continuous = FALSE) + labs(title="Checkout Quantity Over Time")
 @
   \end{center}
-\caption{Caption}\label{fig:5}
+\caption{Physical Book Checkout Over Time}\label{fig:5}
 \end{figure}
 
 
-\subsection{Plot 6}
+\subsection{Total Checkout Heatmap}
 
-Figure \ref{fig:6} shows...
+Figure \ref{fig:6} is a heatmap that shows the total checkouts by month and year. The figure also clearly shows the effect of covid starting March 2020 with the effects lasting until mid 2021. This heatmap more clearly shows which months are least active which is Febuary, September, November, and December. A possible explanation might be that Febuary is the month with the least days and the other months being when students are on vacation. The months with the most activity is during August, January, and July. A likely explanation for this would be students getting ready for the semester to start.
+
 
 \begin{figure}[H]
 \begin{center}
-<<plot6, echo=FALSE,fig.width=7,fig.height=5>>=
+<<plot6, echo=FALSE,fig.width=7,fig.height=5, warning=FALSE, message=FALSE>>=
+toPlot_1 <- df_2 %>% group_by(CheckoutMonth, CheckoutYear) %>% summarize(checkouts = sum(Checkouts))
+toPlot_1$CheckoutMonth <- as.factor(toPlot_1$CheckoutMonth)
+
+ggplot(toPlot_1, aes(CheckoutYear, CheckoutMonth, fill=checkouts)) + geom_tile() + labs(title="Checkout Quantity Over Time") + xlab("Checkout Year") + ylab("Checkout Month") + guides(fill = guide_colourbar(title="Checkout Count"))
 @
   \end{center}
-\caption{Caption}\label{fig:6}
+\caption{Total Checkout Heatmap}\label{fig:6}
 \end{figure}
 
 
