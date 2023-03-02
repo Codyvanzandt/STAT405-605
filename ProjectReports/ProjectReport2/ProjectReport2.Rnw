@@ -141,9 +141,9 @@ allbook2022 <- allbook2022 / min(allbook2022)
 allbook2022 <- c(unname(allbook2022 - min(allbook2022)))
 
 # dataframe
-SF_data <- data.frame(txt = c(txtbook2018, txtbook2019, txtbook2020, txtbook2021, txtbook2022), 
-                      all = c(allbook2018, allbook2019, allbook2020, allbook2021, allbook2022), 
-                      Year = c( rep(2018, times = length(txtbook2018)), 
+SF_data <- data.frame(txt = c(txtbook2018, txtbook2019, txtbook2020, txtbook2021, txtbook2022),
+                      all = c(allbook2018, allbook2019, allbook2020, allbook2021, allbook2022),
+                      Year = c( rep(2018, times = length(txtbook2018)),
                                 rep(2019, times = length(txtbook2019)),
                                 rep(2020, times = length(txtbook2020)),
                                 rep(2021, times = length(txtbook2021)),
@@ -151,12 +151,12 @@ SF_data <- data.frame(txt = c(txtbook2018, txtbook2019, txtbook2020, txtbook2021
                                 ))
 
 # ggplot time
-ggplot(data = SF_data) + 
-  aes(x = log(txt), y = log(all), shape = Year) + 
-  geom_point() + 
-  scale_shape_binned(n.breaks = 6, breaks = c(2018, 2019, 2020, 2021, 2022)) + 
-  labs(x = "Logarithm of Normalized Increase in Textbook Checkouts", 
-       y = "Logarithm of Normalized Increase in All Book Checkouts", 
+ggplot(data = SF_data) +
+  aes(x = log(txt), y = log(all), shape = Year) +
+  geom_point() +
+  scale_shape_binned(n.breaks = 6, breaks = c(2018, 2019, 2020, 2021, 2022)) +
+  labs(x = "Logarithm of Normalized Increase in Textbook Checkouts",
+       y = "Logarithm of Normalized Increase in All Book Checkouts",
        title = "Logarithmic Scatter Plot of the Normalized Increase in Textbook vs All Book Checkouts",
        subtitle = "For all months from 2018-2022")
 @
@@ -165,16 +165,65 @@ ggplot(data = SF_data) +
 \end{figure}
 
 
-\subsection{Plot 3}
+\subsection{Top Publisher Audiobook Checkouts}
 
-Figure \ref{fig:3} shows...
+Figure \ref{fig:3} shows number of audiobook checkouts for the 8 top audiobook publishers,
+2018-2022. Even in this rather cursory glance, a couple of trends catch the eye. 
+First, international publishing conglomerates -- known in the trade as the "Big Five" -- dominate. 
+Four of the Big Five make the list by name: Hachette, HarperCollins, Macmillan, and Simon \& Schuster. The fifth Big Five publisher, Penguin Random House, also makes the list through its imprint,
+Books on Tape. 
+In fact, the only independent publisher on the list is Blackstone,
+as conglomerate RBMedia operates both Tantor Media and Recorded Books.
+
+It seems without coincidence that the only independent publisher on the list,
+Blackstone, is also the only top publisher to see its checkouts decline over the period.
+There is, then, perhaps a larger story to be uncovered about the conglomeration of audiobook publishing and its deleterious effects on independent operators.
+
+As an aside, Hachette Audio's near-vertical rise in checkouts bears further study.
+One wonders whether the massive publisher began a new acquisition or 
+distribution strategy in early 2020. 
 
 \begin{figure}[H]
 \begin{center}
 <<plot3, echo=FALSE,fig.width=7,fig.height=5>>=
+top_book_publishers <- checkout_data %>%
+  filter(MaterialType == "AUDIOBOOK") %>%
+  group_by(Publisher) %>%
+  summarize(total_checkouts = sum(Checkouts)) %>%
+  top_n(8, wt=total_checkouts)
+
+publisher_data <- checkout_data %>%
+  filter(MaterialType == "AUDIOBOOK",
+         Publisher %in% top_book_publishers$Publisher) %>%
+  group_by(CheckoutYear, CheckoutMonth, Publisher) %>%
+  mutate(Publisher = recode(
+    Publisher,
+    `Blackstone Audio, Inc.`="Blackstone",
+    `Books on Tape`="Books on Tape",
+    `Hachette Audio`="Hachette",
+    `HarperCollins Publishers Inc.`="HarperCollins",
+    `Macmillan Audio`= "Macmillian",
+    `Recorded Books, LLC` = "Recorded Books",
+    `Simon & Schuster - Audiobooks` = "Simon & Schuster",
+    `Tantor Media, Inc` = "Tantor Media"
+  )) %>%
+  mutate(total_checkouts = sum(Checkouts)) %>%
+  mutate(date = as.Date(paste0(CheckoutYear,"-",CheckoutMonth,"-01"), "%Y-%m-%d")) %>%
+  ungroup() %>%
+  select(Publisher, date, total_checkouts) %>%
+  arrange(desc(total_checkouts))
+
+ggplot(publisher_data) +
+  geom_line(mapping=aes(x=date, y=total_checkouts)) +
+  facet_wrap(~Publisher, nrow = 2,) +
+  labs(
+    title = "Most Popular Audiobook Publishers",
+    x = "Time",
+    y = "Monthly Checkouts"
+  )
 @
   \end{center}
-\caption{Caption}\label{fig:3}
+\caption{Checkouts for the top eight audiobook publishers, 2018-2022}\label{fig:3}
 \end{figure}
 
 
