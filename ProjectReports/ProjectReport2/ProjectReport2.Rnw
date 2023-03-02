@@ -287,29 +287,56 @@ ggplot(mat_types) +
 \caption{Checkouts by Material Type}\label{fig:4}
 \end{figure}
 
-\subsection{Plot 5}
+\subsection{Physical Book Checkout Over Time}
 
-Figure \ref{fig:5} shows...
+Figure \ref{fig:5} is a seasonal polar plot that shows the physical book checkout count over time from 2018 to 2022 in the Seattle Public library. The values range from 20 to 30000 total checkouts per month. The effect of covid can be seen clearly as the checkout quantity from March 2020 to 2021 decreases significantly until July 2021 where it recovers to roughly half the amount of 2018 and 2018. The most popular months seem to be January, August, and October. A most likely explanation is due to the start of school, the library becomes more active within those months. February and December are the months with the least checkouts most likely due to February being the month with the least days and December being where most students being on vacation and not going to the library.
+
 
 \begin{figure}[H]
 \begin{center}
 <<plot5, echo=FALSE,fig.width=7,fig.height=5>>=
+library(dplyr)
+library(ggplot2)
+df <- checkout_data[checkout_data$PublicationYear != "", ]
+
+df$PublicationYear <- strtoi(substring(gsub("[^0-9]", "", df$PublicationYear), 1, 4))
+
+df_1 <- df[!is.na(df$PublicationYear), ]
+
+summary(df_1$PublicationYear)
+sd_ <- sd(df_1$PublicationYear)
+mu <- mean(df_1$PublicationYear)
+
+df_2 <- df_1[df_1$PublicationYear <= 2022 & df_1$PublicationYear >= mu - 3 * sd_, ]
+df_3 <- df_2[df_2$MaterialType == "BOOK", ]
+toPlot <- df_3 %>% group_by(CheckoutMonth, CheckoutYear) %>% summarize(checkouts = sum(Checkouts))
+
+
+toPlot_ord <- toPlot[order(toPlot$CheckoutYear),]
+toPlot.ts <- ts((toPlot_ord$checkouts), frequency = 12, start=c(2018, 1))
+
+ggseasonplot(x = toPlot.ts, polar = TRUE, continuous = FALSE) + labs(title="Checkout Quantity Over Time")
 @
   \end{center}
-\caption{Caption}\label{fig:5}
+\caption{Physical Book Checkout Over Time}\label{fig:5}
 \end{figure}
 
 
-\subsection{Plot 6}
+\subsection{Total Checkout Heatmap}
 
-Figure \ref{fig:6} shows...
+Figure \ref{fig:6} is a heatmap that shows the total checkouts by month and year. The figure also clearly shows the effect of covid starting March 2020 with the effects lasting until mid 2021. This heatmap more clearly shows which months are least active which is Febuary, September, November, and December. A possible explanation might be that Febuary is the month with the least days and the other months being when students are on vacation. The months with the most activity is during August, January, and July. A likely explanation for this would be students getting ready for the semester to start.
+
 
 \begin{figure}[H]
 \begin{center}
 <<plot6, echo=FALSE,fig.width=7,fig.height=5>>=
+toPlot_1 <- df_2 %>% group_by(CheckoutMonth, CheckoutYear) %>% summarize(checkouts = sum(Checkouts))
+toPlot_1$CheckoutMonth <- as.factor(toPlot_1$CheckoutMonth)
+
+ggplot(toPlot_1, aes(CheckoutYear, CheckoutMonth, fill=checkouts)) + geom_tile() + labs(title="Checkout Quantity Over Time") + xlab("Checkout Year") + ylab("Checkout Month") + guides(fill = guide_colourbar(title="Checkout Count"))
 @
   \end{center}
-\caption{Caption}\label{fig:6}
+\caption{Total Checkout Heatmap}\label{fig:6}
 \end{figure}
 
 
