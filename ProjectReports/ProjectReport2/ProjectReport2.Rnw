@@ -228,6 +228,25 @@ Figure \ref{fig:5} shows...
 \begin{figure}[H]
 \begin{center}
 <<plot5, echo=FALSE,fig.width=7,fig.height=5>>=
+library(dplyr)
+library(ggplot2)
+df <- checkout_data[checkout_data$PublicationYear != "", ]
+
+df$PublicationYear <- strtoi(substring(gsub("[^0-9]", "", df$PublicationYear), 1, 4))
+
+df_1 <- df[!is.na(df$PublicationYear), ]
+
+summary(df_1$PublicationYear)
+sd_ <- sd(df_1$PublicationYear)
+mu <- mean(df_1$PublicationYear)
+
+df_2 <- df_1[df_1$PublicationYear <= 2022 & df_1$PublicationYear >= mu - 3 * sd_, ]
+df_3 <- df_2[df_2$MaterialType == "BOOK", ]
+toPlot <- df_3 %>% group_by(CheckoutMonth, CheckoutYear) %>% summarize(checkouts = sum(Checkouts))
+
+
+toPlot.ts <- ts(toPlot$checkouts, frequency = 12, start=c(2018, 1))
+ggseasonplot(x = toPlot.ts, polar = TRUE, continuous = FALSE) + labs(title="Checkout Quantity Over Time")
 @
   \end{center}
 \caption{Caption}\label{fig:5}
@@ -241,6 +260,10 @@ Figure \ref{fig:6} shows...
 \begin{figure}[H]
 \begin{center}
 <<plot6, echo=FALSE,fig.width=7,fig.height=5>>=
+toPlot_1 <- df_2 %>% group_by(CheckoutMonth, CheckoutYear) %>% summarize(checkouts = sum(Checkouts))
+toPlot_1$CheckoutMonth <- as.factor(toPlot_1$CheckoutMonth)
+
+ggplot(toPlot_1, aes(CheckoutYear, CheckoutMonth, fill=checkouts)) + geom_tile() + labs(title="Checkout Quantity Over Time") + xlab("Checkout Year") + ylab("Checkout Month") + guides(fill = guide_colourbar(title="Checkout Count"))
 @
   \end{center}
 \caption{Caption}\label{fig:6}
