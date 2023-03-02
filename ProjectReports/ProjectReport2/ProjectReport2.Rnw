@@ -84,6 +84,24 @@ This logarithmic scatter plot is able to give a useful comparison between years,
 \begin{figure}[H]
 \begin{center}
 <<plot2, echo=FALSE,fig.width=7,fig.height=5>>=
+# find textbook publishers
+
+library(stringr)
+
+pub_names <- tolower(checkout_data$Publisher)
+
+log_cengage <- str_detect(pub_names, "cengage learning")
+log_macmillan <- str_detect(pub_names, "macmillan")
+log_mcgrawhill <- str_detect(pub_names, "mcgraw")
+log_pearson <- str_detect(pub_names, "pearson")
+log_wiley <- str_detect(pub_names, "wiley")
+log_scholastic <- str_detect(pub_names, "scholastic")
+log_harcourt <- str_detect(pub_names, "harcourt")
+log_houghton <- str_detect(pub_names, "houghton")
+log_wolters <- str_detect(pub_names, "wolters")
+
+log_textbook <- log_cengage | log_macmillan | log_mcgrawhill | log_pearson | log_wiley | log_scholastic | log_harcourt | log_houghton | log_wolters
+
 # publishers by year, only books included
 # 2018
 book2018 <- checkout_data[(checkout_data$CheckoutYear == 2018) & (checkout_data$MaterialType == "BOOK") , ]
@@ -141,23 +159,22 @@ allbook2022 <- allbook2022 / min(allbook2022)
 allbook2022 <- c(unname(allbook2022 - min(allbook2022)))
 
 # dataframe
-SF_data <- data.frame(txt = c(txtbook2018, txtbook2019, txtbook2020, txtbook2021, txtbook2022),
-                      all = c(allbook2018, allbook2019, allbook2020, allbook2021, allbook2022),
-                      Year = c( rep(2018, times = length(txtbook2018)),
-                                rep(2019, times = length(txtbook2019)),
-                                rep(2020, times = length(txtbook2020)),
-                                rep(2021, times = length(txtbook2021)),
-                                rep(2022, times = length(txtbook2022))
+SF_data <- data.frame(txt = c(txtbook2018, txtbook2019, txtbook2020, txtbook2021, txtbook2022), 
+                      all = c(allbook2018, allbook2019, allbook2020, allbook2021, allbook2022), 
+                      Year = c( rep("2018", times = 12), 
+                                rep("2019", times = 12),
+                                rep("2020", times = 12),
+                                rep("2021", times = 12),
+                                rep("2022", times = 12)
                                 ))
 
 # ggplot time
-ggplot(data = SF_data) +
-  aes(x = log(txt), y = log(all), shape = Year) +
-  geom_point() +
-  scale_shape_binned(n.breaks = 6, breaks = c(2018, 2019, 2020, 2021, 2022)) +
-  labs(x = "Logarithm of Normalized Increase in Textbook Checkouts",
-       y = "Logarithm of Normalized Increase in All Book Checkouts",
-       title = "Logarithmic Scatter Plot of the Normalized Increase in Textbook vs All Book Checkouts",
+ggplot(data = SF_data) + 
+  aes(x = log(txt), y = log(all), shape = Year) + 
+  geom_point() + 
+  labs(x = "Logarithm of Normalized Increase in Textbook Checkouts", 
+       y = "Logarithm of Normalized Increase in All Book Checkouts", 
+       title = "Log-Log plot of the Normalized Increase in Textbook vs All Book Checkouts",
        subtitle = "For all months from 2018-2022")
 @
 \end{center}
