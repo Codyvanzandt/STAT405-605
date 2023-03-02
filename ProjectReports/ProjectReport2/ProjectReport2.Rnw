@@ -8,6 +8,8 @@
 library(ggplot2)
 library(ggbreak)
 library(tidyverse)
+library(dplyr)
+library(fpp2)
 @
 
 <<setup, echo=FALSE,results='hide',warning=FALSE, message=FALSE>>=
@@ -294,16 +296,14 @@ Figure \ref{fig:5} is a seasonal polar plot that shows the physical book checkou
 
 \begin{figure}[H]
 \begin{center}
-<<plot5, echo=FALSE,fig.width=7,fig.height=5>>=
-library(dplyr)
-library(ggplot2)
+<<plot5, echo=FALSE,fig.width=7,fig.height=5, warning=FALSE, message=FALSE>>=
 df <- checkout_data[checkout_data$PublicationYear != "", ]
 
 df$PublicationYear <- strtoi(substring(gsub("[^0-9]", "", df$PublicationYear), 1, 4))
 
 df_1 <- df[!is.na(df$PublicationYear), ]
 
-summary(df_1$PublicationYear)
+# summary(df_1$PublicationYear)
 sd_ <- sd(df_1$PublicationYear)
 mu <- mean(df_1$PublicationYear)
 
@@ -329,7 +329,7 @@ Figure \ref{fig:6} is a heatmap that shows the total checkouts by month and year
 
 \begin{figure}[H]
 \begin{center}
-<<plot6, echo=FALSE,fig.width=7,fig.height=5>>=
+<<plot6, echo=FALSE,fig.width=7,fig.height=5, warning=FALSE, message=FALSE>>=
 toPlot_1 <- df_2 %>% group_by(CheckoutMonth, CheckoutYear) %>% summarize(checkouts = sum(Checkouts))
 toPlot_1$CheckoutMonth <- as.factor(toPlot_1$CheckoutMonth)
 
