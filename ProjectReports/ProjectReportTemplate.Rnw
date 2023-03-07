@@ -1,40 +1,128 @@
-\documentclass[10pt]{article}
+\documentclass[titlepage,10pt]{article}
 \usepackage[left=1in,right=1in,top=1in,bottom=1in]{geometry}
 \usepackage{amsmath}
 \usepackage{hyperref}
 \usepackage{float}
+\hypersetup{pdfborder=0 0 0}
+\setlength{\parindent}{0pt}
 
 <<setup, echo=FALSE,results='hide',warning=FALSE, message=FALSE>>=
 setwd('../..')
 source("useful_utils.R")
+checkout_data <- get_checkouts(2018:2022)
 @
 
 \begin{document}
-
+\begin{titlepage}
 \title{Analyzing Book Checkout Trends at the Seattle Public Library: A 5-Year Data Study (2018-2022)}
 \author{Sarvesh Fotedar, Ekrem Kizilkaya, Abbas Shaikh, Cody VanZandt, Andy Wang}
+\date{}
+\clearpage
 \maketitle
+\end{titlepage}
+\pagebreak
+
+\clearpage
 \tableofcontents
+\thispagestyle{empty}
+\pagebreak\documentclass[titlepage,10pt]{article}
+\usepackage[left=1in,right=1in,top=1in,bottom=1in]{geometry}
+\usepackage{amsmath}
+\usepackage{hyperref}
+\usepackage{float}
+\hypersetup{pdfborder=0 0 0}
+\setlength{\parindent}{0pt}
 
-\newpage
+\begin{document}
+\begin{titlepage}
+\title{Analyzing Book Checkout Trends at the Seattle Public Library: A 5-Year Data Study (2018-2022)}
+\author{Sarvesh Fotedar, Ekrem Kizilkaya, Abbas Shaikh, Cody VanZandt, Andy Wang}
+\date{}
+\clearpage
+\maketitle
+\end{titlepage}
+\pagebreak
 
+\clearpage
+\tableofcontents
+\thispagestyle{empty}
+\pagebreak
+
+\setcounter{page}{1}
 \section{Introduction}
 
-We present an preliminary examination of 11,749,255 checkouts from the Seattle Public Library system over a five-year period from 2018 to 2022. We intend to use this data -- in concert with book review data from Goodreads -- to examine Seattle's literary tastes and reading habits.
+From classic literature to contemporary bestsellers, the Seattle Public Library's book collection offers a rich window into its surrounding community's literary tastes and interests. By analyzing checkout trends and book movement, we can uncover which novels and authors are most beloved among library patrons, giving us remarkable insight into the community's unique cultural and social context. \\
 
-Animating this analysis are more general questions about the contours of contemporary American readership.
+This report conducts a preliminary examination of 11,749,255 checkouts from the Seattle Public Library system over the five years between 2018 and 2022. We intend to combine this information with Goodreads review data from the UCSD Book Graph to answer general questions about the contours of contemporary American readership and even perform specific analyses on the competitive dynamics of the book authorship and publishing industry. \\
 
-\begin{itemize}
+From this point forward, the following questions to guide our exploration and report:
+
+\begin{enumerate}
+  \itemsep 0em
   \item Why do some books enjoy widespread acclaim while others fizzle?
   \item Do popular books explode onto the scene or accumulate readers more gradually?
-  \item How do popular success and critical acclaim differ?
-  \item How has recent publisher conglomeration of publishers changed the literary marketplace? 
+  \item How do the popular success and critical acclaim of novels differ?
+  \item How has recent conglomeration of publishers changed the literary marketplace? 
   \item And, ultimately, to what degree can the success or failure of a book be predicted?
-\end{itemize}
+\end{enumerate}
 
-The answers, we hope, will be illuminating for authors, publishers, critics, taste-makers, and readers alike. 
+From the most popular genres and titles to the unique factors influencing readers' choices, book checkout data offers a rich window into the complex relationship between readers, libraries, and the larger cultural context. In this paper, we will examine the book checkout trends at the Seattle Public Library in detail, drawing on both statistical and literary analysis to shed light on the unique reading culture of this vibrant community.
 
-\section{First Plots}
+\section{Datasets}
+
+\subsection{Seattle Public Library}
+
+Our primary dataset comes directly from the Seattle Public Library and has approximately twelve million rows for book checkouts spanning the five years between 2018 and 2022. Specifically, each row corresponds to a monthly count of checkouts for the physical or electronic version of an item. Items are not just limited to books; the Seattle Public Library also makes video discs, e-books, and sound discs available to patrons, to name a few. Each row is described by eleven variables, which are described by Table~\ref{libraryvars}.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{ |p{3cm}|l| } 
+    \hline
+    \textbf{Variable} & \textbf{Description} \\
+    \hline
+    UsageClass & Whether the item was physical or digital \\
+    CheckoutType & The tool or vendor that was used for checkout \\
+    MaterialType & The item type (ex: book, video disc, etc) \\
+    CheckoutMonth & The four digit checkout year \\
+    CheckoutYear & The month of checkout \\
+    Checkouts & The number of times that the item was checked out within the checkout month \\
+    Title & The full title and subtitle \\
+    Creator & The author or entity responsible for creating \\
+    Subjects & The subjects as they appear in the library catalog \\
+    Publisher & The publisher of the title \\
+    PublicationYear & The year that the item was published, printed, or copyrighted \\ 
+\hline
+\end{tabular}
+\caption{Seattle Public Library Variables}
+\label{libraryvars}
+\end{table}
+
+\subsection{UCSD Book Graph}
+
+Our supplementary dataset comes from the UCSD Book Graph initiative and contains over fifteen million reviews for approximately two million books from 465,000 users. Each row of the dataset is a JSON object which represents a single review and its associated metadata. The nine attributes of each JSON-ified review are described in Table~\ref{reviewvars}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{ |p{3cm}|l| } 
+    \hline
+    \textbf{Attribute} & \textbf{Description} \\
+    \hline
+    user\_id & The UUID of the reviewing user \\
+    book\_id & The unique numerical id for the reviewed book \\
+    review\_id & The UUID of the review itself \\
+    rating & The numerical rating of the book out of 5 \\
+    review\_text & The text content of the review \\
+    date\_added & The date the review was published \\
+    date\_updated & The date the review was updated, if applicable \\
+    n\_votes & The number of votes endorsing the review \\
+    n\_comments & The number of comments for the review \\ 
+\hline
+\end{tabular}
+\caption{UCSD Book Review Object Attributes}
+\label{reviewvars}
+\end{table}
+
+\section{Plots}
 
 \subsection{Plot 1}
 
@@ -111,6 +199,5 @@ Figure \ref{fig:6} shows...
   \end{center}
 \caption{Caption}\label{fig:6}
 \end{figure}
-
 
 \end{document}
