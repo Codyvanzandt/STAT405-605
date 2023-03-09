@@ -10,6 +10,9 @@
 setwd('../..')
 source("useful_utils.R")
 checkout_data <- get_checkouts(2018:2022)
+
+library(ggplot2)
+library(dplyr)
 @
 
 \begin{document}
@@ -242,6 +245,93 @@ Figure \ref{fig:6} shows...
 @
   \end{center}
 \caption{Caption}\label{fig:6}
+\end{figure}
+
+\section{Trends in E-book Publishers}
+Figure \ref{fig:7} shows the monthly checkouts of the top 8 e-book publishers from 2018 to 2022. Most notably, we see large increases in checkouts from Random House and Penguin Group in 2020, and similarly-timed though not as drastic increases in checkouts from other publishers. In figure \ref{fig:8} we normalize the number of monthly checkouts in order to analyse the variance in checkouts for each e-book publishers proportional to the number of checkouts each publisher receives. We now see that while all publishers saw overall net positive growth, some experienced steady growth in checkouts, for example Macmillan Publishers, whereas others such as Scholastic experienced the previously observed spike in checkouts beginning in 2020. This trend is also observed in the total number of e-book checkouts from 2018 to 2022 in \ref{fig:9}. Our eventual goal is to analyse and compare trends in checkouts from all e-book publishers from 2018 to 2022 at the Seattle Public Library.
+
+\begin{figure}[H]
+\begin{center}
+<<echo=FALSE,fig.width=7,fig.height=5>>=
+ebook_publishers <- checkout_data %>%
+  filter(MaterialType == "EBOOK") %>%
+  group_by(Publisher) %>%
+  summarize(total_checkouts = sum(Checkouts)) %>%
+  top_n(8, wt=total_checkouts)
+
+publisher_data <- checkout_data %>%
+  filter(MaterialType == "EBOOK", # ) %>%
+         Publisher %in% ebook_publishers$Publisher) %>%
+  group_by(CheckoutYear, CheckoutMonth, Publisher) %>%
+  mutate(total_checkouts = sum(Checkouts)) %>%
+  mutate(date = as.Date(paste0(CheckoutYear,"-",CheckoutMonth,"-01"), "%Y-%m-%d")) %>%
+  ungroup() %>%
+  select(Publisher, date, total_checkouts) %>%
+  arrange(desc(total_checkouts))
+
+publisher_data <- publisher_data %>% distinct(date, total_checkouts, .keep_all = TRUE)
+
+total <- publisher_data %>%
+  group_by(date) %>%
+  summarize(checkouts = sum(total_checkouts))
+
+normalize <- function(x){
+  (x - min(x)) / (max(x) - min(x))
+}
+
+normalized <- data.frame(matrix(nrow = 0, ncol = length(colnames(publisher_data))))
+colnames(normalized) <- colnames(publisher_data)
+for (publisher in ebook_publishers$Publisher){
+  publisher_sub <- subset(publisher_data, Publisher == publisher)
+  publisher_sub$total_checkouts <- normalize(publisher_sub$total_checkouts)
+  normalized <- rbind(normalized, publisher_sub)
+}
+
+ggplot(publisher_data) +
+  geom_line(mapping=aes(x=date, y=total_checkouts)) +
+  facet_wrap(~Publisher, nrow = 2,) +
+  labs(
+    title = "Most Popular Ebook Publishers",
+    x = "Time",
+    y = "Monthly Checkouts"
+  ) +
+  theme(strip.text.x = element_text(size = 5))
+@
+  \end{center}
+\caption{Checkouts from 8 most popular e-book publishers}\label{fig:7}
+\end{figure}
+
+  
+\begin{figure}[H]
+\begin{center}
+<<echo=FALSE,fig.width=7,fig.height=5>>=
+ggplot(normalized) +
+  geom_line(mapping=aes(x=date, y=total_checkouts)) +
+  facet_wrap(~Publisher, nrow = 2,) +
+  labs(
+    title = "Most Popular Ebook Publishers (Normalized)",
+    x = "Time",
+    y = "Monthly Checkouts (Normalized)"
+  ) +
+  theme(strip.text.x = element_text(size = 5))
+@
+  \end{center}
+\caption{Checkouts from 8 most popular e-book publishers (normalized)}\label{fig:8}
+\end{figure}
+
+\begin{figure}[H]
+\begin{center}
+<<echo=FALSE,fig.width=7,fig.height=5>>=
+ggplot(total) +
+  geom_line(mapping=aes(x=date, y=checkouts)) +
+  labs(
+    title = "Total Number of Ebooks Checked Out",
+    x = "Time",
+    y = "Monthly Checkouts"
+  )
+@
+  \end{center}
+\caption{Total e-book checkouts from 2018 to 2022}\label{fig:9}
 \end{figure}
 
 \end{document}
