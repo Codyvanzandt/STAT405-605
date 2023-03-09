@@ -184,13 +184,33 @@ ggplot(data = df_ts, aes(x = dates)) +
 \end{figure}
 
 
-\subsection{Plot 2}
+\subsection{Distribution of Book Popularity for Top 16 Most Popular Authors}
 
-Figure \ref{fig:2} shows...
+Figure \ref{fig:2} the distribution of how popular the top 16 author's books are. This is useful information as it shows characteristics of the most popular authors. The types of distributions there are in the graphs seem to be uniform, bell-shaped, and uniform with a spike towards the higher end. It seems that by publishing a lot of somewhat popular books such as books in a series is a valid idea to getting large amount of checkouts. It is also reassuring to see that the most popular authors also can have books that do not perform that well.
 
 \begin{figure}[H]
 \begin{center}
 <<plot2, echo=FALSE,fig.width=7,fig.height=5>>=
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+df <- checkout_data[checkout_data$PublicationYear != "" & checkout_data$Creator != "" & checkout_data$MaterialType == "BOOK", ]
+df$PublicationYear <- strtoi(substring(gsub("[^0-9]", "", df$PublicationYear), 1, 4))
+df_1 <- df[!is.na(df$PublicationYear), ]
+
+summary(df_1$PublicationYear)
+sd_ <- sd(df_1$PublicationYear)
+mu <- mean(df_1$PublicationYear)
+
+df_2 <- df_1[df_1$PublicationYear <= 2023 & df_1$PublicationYear >= mu - 3 * sd_, ]
+df_authors = df_2 %>% group_by(Creator) %>% summarise(total_checkout = sum(Checkouts))
+
+most_checkouts <- top_n(df_authors, 16, total_checkout)
+ordered <- most_checkouts[order(-most_checkouts$total_checkout), ]
+
+subset_checkouts <- df_merged[df_merged$Creator %in% ordered$Creator ,]
+
+ggplot(subset_checkouts, aes(log(total_checkout))) + geom_histogram(bins=30)+facet_wrap(.~Creator)+ labs(title = "Distribution of Book Popularity for Top 16 Most Popular Authors")+ xlab("Log of Book Checkouts") + ylab("Number of Books")
 @
   \end{center}
 \caption{Caption}\label{fig:2}
