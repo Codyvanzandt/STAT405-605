@@ -204,7 +204,8 @@ mu <- mean(df_1$PublicationYear)
 
 df_2 <- df_1[df_1$PublicationYear <= 2023 & df_1$PublicationYear >= mu - 3 * sd_, ]
 df_authors = df_2 %>% group_by(Creator) %>% summarise(total_checkout = sum(Checkouts))
-
+df_merged = df_2 %>% group_by(Title, Creator)  %>%
+                    summarise(total_checkout = sum(Checkouts))
 most_checkouts <- top_n(df_authors, 16, total_checkout)
 ordered <- most_checkouts[order(-most_checkouts$total_checkout), ]
 
