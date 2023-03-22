@@ -104,6 +104,61 @@ Our supplementary dataset comes from the UCSD Book Graph initiative and contains
 \label{reviewvars}
 \end{table}
 
+\section{Behind the Scenes}
+
+A not-insubstantial proportion of the effort this week has happened behind the scenes
+on problems that do not lend themselves to a neat data visualization or pithy 
+statistical insight. This work, however, is critical to the future of this project,
+As such, we would take some small space to summarize two of the most important
+back-end efforts: fuzzy string matching between datasets and popularity curve construction.
+
+\subsection{Fuzzy Title Matching}
+
+To make best use of our UCSD Book Graph Goodreads data, we need to match unique
+book IDs from Goodreads reviews to book checkouts from the Seattle Public Library.
+The Seattle data, however, is messy.
+Author information is often encoded in the title field, which is itself often
+full of misspellings and other typographical oddities. Dataset alignment, then,
+is a challenging problem in its own. As a first attempt, we employ a fuzzy string matching algorithm that computes
+pairwise similarity between the Goodreads and Seattle book titles and 
+reports a match when that similarity crosses a given threshold.
+Our current similarity measure is Jaro-Winkler,
+which we selected primarily because it weighs matches at the beginning of
+a string more heavily than matches towards the end. Given the erroneous additions
+frequently appended to the end of Seattle library book titles, Jaro-Winkler 
+ought to perform well. After parameter optimization, we report that approximately
+thirty percent of Seattle titles have been matched to Goodreads book IDs. 
+With more nuanced title preprocessing and multivariable matching across author and
+publisher, we anticipate that the match rate could approach 50 percent.
+
+\subsection{Popularity Curve Clustering}
+
+Beyond string matching, we also report some initial research into time series 
+dimensionality reduction and clustering. In considering book popularity over time,
+it is natural to ask if there are certain popularity patterns that recur
+across books, publishers, and genres. If these common patterns can 
+be identified, then perhaps they can be predicted. After consulting the 
+literature on time series clustering, we present a pipeline that we believe
+could identify clusters of books that exhibit similar popularity patterns. 
+This pipeline computes monthly popularity time series curves and transforms them
+through z-normalization, discrete cosine transform, dynamic time warping, and k-medoids clustering. \\
+
+Z-normalization makes the shape of popularity curves comparable across books with dramatically different raw checkout numbers. Discrete cosine transform 
+reduces the dimensionality by decomposing and recomposing the time series
+using a smaller number of cosine waves. Dynamic time warping defines a similarity
+score for popularity curves with potentially non-overlapping time domains. And finally,
+k-medoids clustering modififes the more familiar k-medoids clustering by replacing
+average-computed centroids with median-computed centroids. K-medoids is a less common
+choice than k-means, so the selection is worth commenting upon. Compared with k-means,
+k-medoids is less sensitive to outliers and replaces the creation of artificial 
+average-based centroids with median-based ones This sidesteps the need 
+to average different popularity curves together during centroid creation --
+a questionable practice to be sure. \\
+
+We hope that this unsupervised machine learning pipeline will, once implemented,
+make possible a variety of supervised and predictive modeling tasks.
+
+
 \section{Plots}
 
 \subsection{Plot 1}
@@ -113,8 +168,6 @@ Figure \ref{fig:1} shows the time-series counts of all physical and electronic c
 \begin{figure}[H]
 \begin{center}
 <<plot1, echo=FALSE,fig.width=7,fig.height=5>>=
-
-checkout_data <- get_checkouts(2018:2022)
 
 ## track digital vs physical books over time
 log_ebook <- checkout_data$MaterialType == "EBOOK"
@@ -184,68 +237,39 @@ ggplot(data = df_ts, aes(x = dates)) +
 \end{figure}
 
 
-\subsection{Plot 2}
+\subsection{Distribution of Book Popularity for Top 16 Most Popular Authors}
 
-Figure \ref{fig:2} shows...
+Figure \ref{fig:2} the distribution of how popular the top 16 author's books are. This is useful information as it shows characteristics of the most popular authors. The types of distributions there are in the graphs seem to be uniform, bell-shaped, and uniform with a spike towards the higher end. It seems that by publishing a lot of somewhat popular books such as books in a series is a valid idea to getting large amount of checkouts. It is also reassuring to see that the most popular authors also can have books that do not perform that well.
 
 \begin{figure}[H]
 \begin{center}
 <<plot2, echo=FALSE,fig.width=7,fig.height=5>>=
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+df <- checkout_data[checkout_data$PublicationYear != "" & checkout_data$Creator != "" & checkout_data$MaterialType == "BOOK", ]
+df$PublicationYear <- strtoi(substring(gsub("[^0-9]", "", df$PublicationYear), 1, 4))
+df_1 <- df[!is.na(df$PublicationYear), ]
+
+summary(df_1$PublicationYear)
+sd_ <- sd(df_1$PublicationYear)
+mu <- mean(df_1$PublicationYear)
+
+df_2 <- df_1[df_1$PublicationYear <= 2023 & df_1$PublicationYear >= mu - 3 * sd_, ]
+df_authors = df_2 %>% group_by(Creator) %>% summarise(total_checkout = sum(Checkouts))
+df_merged = df_2 %>% group_by(Title, Creator)  %>%
+                    summarise(total_checkout = sum(Checkouts))
+most_checkouts <- top_n(df_authors, 16, total_checkout)
+ordered <- most_checkouts[order(-most_checkouts$total_checkout), ]
+
+subset_checkouts <- df_merged[df_merged$Creator %in% ordered$Creator ,]
+
+ggplot(subset_checkouts, aes(log(total_checkout))) + geom_histogram(bins=30)+facet_wrap(.~Creator)+ labs(title = "Distribution of Book Popularity for Top 16 Most Popular Authors")+ xlab("Log of Book Checkouts") + ylab("Number of Books")
 @
   \end{center}
 \caption{Caption}\label{fig:2}
 \end{figure}
 
-
-\subsection{Plot 3}
-
-Figure \ref{fig:3} shows...
-
-\begin{figure}[H]
-\begin{center}
-<<plot3, echo=FALSE,fig.width=7,fig.height=5>>=
-@
-  \end{center}
-\caption{Caption}\label{fig:3}
-\end{figure}
-
-
-\subsection{Plot 4}
-
-Figure \ref{fig:4} shows...
-
-\begin{figure}[H]
-\begin{center}
-<<plot4, echo=FALSE,fig.width=7,fig.height=5>>=
-@
-  \end{center}
-\caption{Caption}\label{fig:4}
-\end{figure}
-
-\subsection{Plot 5}
-
-Figure \ref{fig:5} shows...
-
-\begin{figure}[H]
-\begin{center}
-<<plot5, echo=FALSE,fig.width=7,fig.height=5>>=
-@
-  \end{center}
-\caption{Caption}\label{fig:5}
-\end{figure}
-
-
-\subsection{Plot 6}
-
-Figure \ref{fig:6} shows...
-
-\begin{figure}[H]
-\begin{center}
-<<plot6, echo=FALSE,fig.width=7,fig.height=5>>=
-@
-  \end{center}
-\caption{Caption}\label{fig:6}
-\end{figure}
 
 \section{Trends in E-book Publishers}
 Figure \ref{fig:7} shows the monthly checkouts of the top 8 e-book publishers from 2018 to 2022. Most notably, we see large increases in checkouts from Random House and Penguin Group in 2020, and similarly-timed though not as drastic increases in checkouts from other publishers. In figure \ref{fig:8} we normalize the number of monthly checkouts in order to analyse the variance in checkouts for each e-book publishers proportional to the number of checkouts each publisher receives. We now see that while all publishers saw overall net positive growth, some experienced steady growth in checkouts, for example Macmillan Publishers, whereas others such as Scholastic experienced the previously observed spike in checkouts beginning in 2020. This trend is also observed in the total number of e-book checkouts from 2018 to 2022 in \ref{fig:9}. Our eventual goal is to analyse and compare trends in checkouts from all e-book publishers from 2018 to 2022 at the Seattle Public Library.
