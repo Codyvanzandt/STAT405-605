@@ -1,0 +1,232 @@
+\documentclass[titlepage,10pt]{article}
+\usepackage[left=1in,right=1in,top=1in,bottom=1in]{geometry}
+\usepackage{amsmath}
+\usepackage{hyperref}
+\usepackage{float}
+\hypersetup{pdfborder=0 0 0}
+\setlength{\parindent}{0pt}
+
+<<setup, echo=FALSE,results='hide',warning=FALSE, message=FALSE>>=
+setwd('../..')
+source("useful_utils.R")
+
+library(ggplot2)
+library(dplyr)
+library(RSQLite)
+library(tidyr)
+
+dcon <- dbConnect(SQLite(), dbname = "data/SQLData.db")
+@
+
+\begin{document}
+\begin{titlepage}
+\title{Analyzing Book Checkout Trends at the Seattle Public Library: A 5-Year Data Study (2018-2022)}
+\author{Sarvesh Fotedar, Ekrem Kizilkaya, Abbas Shaikh, Cody VanZandt, Andy Wang}
+\date{}
+\clearpage
+\maketitle
+\end{titlepage}
+\pagebreak
+
+\clearpage
+\tableofcontents
+\thispagestyle{empty}
+\pagebreak
+
+\setcounter{page}{1}
+\section{Introduction}
+
+From classic literature to contemporary bestsellers, the Seattle Public Library's book collection offers a rich window into its surrounding community's literary tastes and interests. By analyzing checkout trends and book movement, we can uncover which novels and authors are most beloved among library patrons, giving us remarkable insight into the community's unique cultural and social context. \\
+
+This report conducts a preliminary examination of 11,749,255 checkouts from the Seattle Public Library system over the five years between 2018 and 2022. We intend to combine this information with Goodreads review data from the UCSD Book Graph to answer general questions about the contours of contemporary American readership and even perform specific analyses on the competitive dynamics of the book authorship and publishing industry. \\
+
+From this point forward, the following questions to guide our exploration and report:
+
+\begin{enumerate}
+  \itemsep 0em
+  \item Why do some books enjoy widespread acclaim while others fizzle?
+  \item Do popular books explode onto the scene or accumulate readers more gradually?
+  \item How do the popular success and critical acclaim of novels differ?
+  \item How has recent conglomeration of publishers changed the literary marketplace? 
+  \item And, ultimately, to what degree can the success or failure of a book be predicted?
+\end{enumerate}
+
+From the most popular genres and titles to the unique factors influencing readers' choices, book checkout data offers a rich window into the complex relationship between readers, libraries, and the larger cultural context. In this paper, we will examine the book checkout trends at the Seattle Public Library in detail, drawing on both statistical and literary analysis to shed light on the unique reading culture of this vibrant community.
+
+\section{Datasets}
+
+\subsection{Seattle Public Library}
+
+Our primary dataset comes directly from the Seattle Public Library and has approximately twelve million rows for book checkouts spanning the five years between 2018 and 2022. Specifically, each row corresponds to a monthly count of checkouts for the physical or electronic version of an item. Items are not just limited to books; the Seattle Public Library also makes video discs, e-books, and sound discs available to patrons, to name a few. Each row is described by eleven variables, which are described by Table~\ref{libraryvars}.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{ |p{3cm}|l| } 
+    \hline
+    \textbf{Variable} & \textbf{Description} \\
+    \hline
+    UsageClass & Whether the item was physical or digital \\
+    CheckoutType & The tool or vendor that was used for checkout \\
+    MaterialType & The item type (ex: book, video disc, etc) \\
+    CheckoutMonth & The four digit checkout year \\
+    CheckoutYear & The month of checkout \\
+    Checkouts & The number of times that the item was checked out within the checkout month \\
+    Title & The full title and subtitle \\
+    Creator & The author or entity responsible for creating \\
+    Subjects & The subjects as they appear in the library catalog \\
+    Publisher & The publisher of the title \\
+    PublicationYear & The year that the item was published, printed, or copyrighted \\ 
+\hline
+\end{tabular}
+\caption{Seattle Public Library Variables}
+\label{libraryvars}
+\end{table}
+
+\subsection{UCSD Book Graph}
+
+Our supplementary dataset comes from the UCSD Book Graph initiative and contains over fifteen million reviews for approximately two million books from 465,000 users. Each row of the dataset is a JSON object which represents a single review and its associated metadata. The nine attributes of each JSON-ified review are described in Table~\ref{reviewvars}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{ |p{3cm}|l| } 
+    \hline
+    \textbf{Attribute} & \textbf{Description} \\
+    \hline
+    user\_id & The UUID of the reviewing user \\
+    book\_id & The unique numerical id for the reviewed book \\
+    review\_id & The UUID of the review itself \\
+    rating & The numerical rating of the book out of 5 \\
+    review\_text & The text content of the review \\
+    date\_added & The date the review was published \\
+    date\_updated & The date the review was updated, if applicable \\
+    n\_votes & The number of votes endorsing the review \\
+    n\_comments & The number of comments for the review \\ 
+\hline
+\end{tabular}
+\caption{UCSD Book Review Object Attributes}
+\label{reviewvars}
+\end{table}
+
+\section{Behind the Scenes}
+
+A not-insubstantial proportion of the effort this week has happened behind the scenes
+on problems that do not lend themselves to a neat data visualization or pithy 
+statistical insight. This work, however, is critical to the future of this project,
+As such, we would take some small space to summarize two of the most important
+back-end efforts: fuzzy string matching between datasets and popularity curve construction.
+
+\subsection{Fuzzy Title Matching}
+
+To make best use of our UCSD Book Graph Goodreads data, we need to match unique
+book IDs from Goodreads reviews to book checkouts from the Seattle Public Library.
+The Seattle data, however, is messy.
+Author information is often encoded in the title field, which is itself often
+full of misspellings and other typographical oddities. Dataset alignment, then,
+is a challenging problem in its own. As a first attempt, we employ a fuzzy string matching algorithm that computes
+pairwise similarity between the Goodreads and Seattle book titles and 
+reports a match when that similarity crosses a given threshold.
+Our current similarity measure is Jaro-Winkler,
+which we selected primarily because it weighs matches at the beginning of
+a string more heavily than matches towards the end. Given the erroneous additions
+frequently appended to the end of Seattle library book titles, Jaro-Winkler 
+ought to perform well. After parameter optimization, we report that approximately
+thirty percent of Seattle titles have been matched to Goodreads book IDs. 
+With more nuanced title preprocessing and multivariable matching across author and
+publisher, we anticipate that the match rate could approach 50 percent.
+
+\subsection{Popularity Curve Clustering}
+
+Beyond string matching, we also report some initial research into time series 
+dimensionality reduction and clustering. In considering book popularity over time,
+it is natural to ask if there are certain popularity patterns that recur
+across books, publishers, and genres. If these common patterns can 
+be identified, then perhaps they can be predicted. After consulting the 
+literature on time series clustering, we present a pipeline that we believe
+could identify clusters of books that exhibit similar popularity patterns. 
+This pipeline computes monthly popularity time series curves and transforms them
+through z-normalization, discrete cosine transform, dynamic time warping, and k-medoids clustering. \\
+
+Z-normalization makes the shape of popularity curves comparable across books with dramatically different raw checkout numbers. Discrete cosine transform 
+reduces the dimensionality by decomposing and recomposing the time series
+using a smaller number of cosine waves. Dynamic time warping defines a similarity
+score for popularity curves with potentially non-overlapping time domains. And finally,
+k-medoids clustering modififes the more familiar k-medoids clustering by replacing
+average-computed centroids with median-computed centroids. K-medoids is a less common
+choice than k-means, so the selection is worth commenting upon. Compared with k-means,
+k-medoids is less sensitive to outliers and replaces the creation of artificial 
+average-based centroids with median-based ones This sidesteps the need 
+to average different popularity curves together during centroid creation --
+a questionable practice to be sure. \\
+
+We hope that this unsupervised machine learning pipeline will, once implemented,
+make possible a variety of supervised and predictive modeling tasks.
+
+\section{Trends in Book, E-Book, and Audiobook Publishers}
+
+We seek to compare the relative success and reception of various book, e-book, and audiobook publishers at the Seattle Public Library from 2005 to 2022, so as to better understand the general popularity of such publishers in the literary marketplace.
+
+<<echo=FALSE,fig.width=7,fig.height=5>>=
+query <- paste0("
+SELECT CheckoutYear, CheckoutMonth, MaterialType, Publisher, SUM(Checkouts) as CheckoutSum
+FROM checkouts
+WHERE MaterialType = 'BOOK' OR MaterialType = 'EBOOK' OR MaterialType = 'AUDIOBOOK'
+GROUP BY CheckoutYear, CheckoutMonth, MaterialType
+ORDER BY CheckoutYear, CheckoutMonth, MaterialType
+;")
+
+res <- dbSendQuery(dcon, query)
+bookFormatData <- dbFetch(res, -1)
+dbClearResult(res)
+
+bookFormatData$Date <- with(bookFormatData, sprintf("%d-%02d-01", CheckoutYear, CheckoutMonth))
+bookFormatData$Date <- as.Date(bookFormatData$Date, format = "%Y-%m-%d")
+@
+
+As a baseline for comparison, we first isolate the total monthly checkouts for books, e-books, and audiobooks from 2005 to 2022 as shown below in Figure \ref{fig:1}.
+
+\begin{figure}[H]
+\begin{center}
+<<echo=FALSE,fig.width=7,fig.height=5>>=
+ggplot(bookFormatData) +
+  geom_line(mapping=aes(x=Date, y=CheckoutSum, color = MaterialType)) +
+  labs(
+    title = "Monthy checkouts of book, e-book, and audiobook formats from 2005-2022",
+    x = "Date",
+    y = "Monthly Checkouts"
+  )
+@
+\end{center}
+\caption{Monthy checkouts of book, e-book, and audiobook formats}\label{fig:1}
+\end{figure}
+
+Given that we seek to compare the success of specific publishers to the total demand for various book formats and the absolute popularity is not consistent among publishers, our analysis will rescale the range of all time series data to the range [0, 1]. This will allow for the relative popularity of specific publishers to be comparable with one another and with overall trends in library checkouts. We display the rescaled time series in Figure \ref{fig:2}.
+
+\begin{figure}[H]
+\begin{center}
+<<echo=FALSE,fig.width=7,fig.height=5>>=
+rescale <- function(x){
+  (x - min(x)) / (max(x) - min(x))
+}
+
+bookFormatDataRescaled <- data.frame(matrix(nrow = 0, ncol = length(colnames(bookFormatData))))
+colnames(bookFormatDataRescaled) <- colnames(bookFormatData)
+for (format in c("BOOK", "EBOOK", "AUDIOBOOK")){
+  typeSubset <- subset(bookFormatData, MaterialType == format)
+  typeSubset$CheckoutSum <- rescale(typeSubset$CheckoutSum)
+  bookFormatDataRescaled <- rbind(bookFormatDataRescaled, typeSubset)
+}
+
+ggplot(bookFormatDataRescaled) +
+  geom_line(mapping=aes(x=Date, y=CheckoutSum)) +
+  facet_wrap(~MaterialType, nrow = 3,) +
+  labs(
+    title = "Checkouts of audiobook, book, and e-book formats from 2005-2022 (Scaled)",
+    x = "Date",
+    y = "Monthly Checkouts (Scaled)"
+  )
+@
+\end{center}
+\caption{Monthy checkouts of book, e-book, and audiobook formats (Scaled)}\label{fig:2}
+\end{figure}
+
+\end{document}
