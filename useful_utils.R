@@ -1,4 +1,5 @@
 library(data.table)
+library(RSQLite)
 
 get_checkouts <- function(years, directory="./data/checkouts"){
   #' Returns a single dataframe of the Seattle checkouts data for the given years
@@ -30,4 +31,8 @@ wrap.labels <- function(x, len)
   } else {
     wrap.it(x, len)
   }
+}
+
+get.connection <- function(directory = "./data") {
+  dbConnect(SQLite(), dbname = paste0(directory, "/SQLData.db"))
 }
