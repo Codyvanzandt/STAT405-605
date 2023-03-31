@@ -161,9 +161,10 @@ a questionable practice to be sure. \\
 We hope that this unsupervised machine learning pipeline will, once implemented,
 make possible a variety of supervised and predictive modeling tasks.
 
+\newpage
 \section{Trends in Book, E-Book, and Audiobook Publishers}
 
-We seek to compare the relative success and reception of various book, e-book, and audiobook publishers at the Seattle Public Library from 2005 to 2022, so as to better understand the general popularity of such publishers in the literary marketplace.
+We seek to compare the relative success and reception of various book, e-book, and audiobook publishers at the Seattle Public Library from 2005 to 2022, so as to better understand the general popularity of such publishers in the literary marketplace. It is particularly notable to see the growth of the audiobook and ebook marketplace during 2005 to 2022, likely due to increased digitization of library content as well as greater availability of use of technology to interact with digital content. As a baseline for comparison, we first isolate the total monthly checkouts for books, e-books, and audiobooks from 2005 to 2022 as shown below in Figure \ref{fig:1}.
 
 <<echo=FALSE,fig.width=7,fig.height=5>>=
 query <- paste0("
@@ -181,8 +182,6 @@ dbClearResult(res)
 bookFormatData$Date <- with(bookFormatData, sprintf("%d-%02d-01", CheckoutYear, CheckoutMonth))
 bookFormatData$Date <- as.Date(bookFormatData$Date, format = "%Y-%m-%d")
 @
-
-As a baseline for comparison, we first isolate the total monthly checkouts for books, e-books, and audiobooks from 2005 to 2022 as shown below in Figure \ref{fig:1}.
 
 \begin{figure}[H]
 \begin{center}
@@ -227,6 +226,81 @@ ggplot(bookFormatDataRescaled) +
 @
 \end{center}
 \caption{Monthy checkouts of book, e-book, and audiobook formats (Scaled)}\label{fig:2}
+\end{figure}
+
+Given the recent growth in popularity of audiobooks, we specifically hope to analyze how the audiobook market has grown within the microcosm of the Seattle Public Library. With this goal in mind, we compare the popularity of checkouts from top audiobook publishers at the Seattle Public Library with the total probability observed above, in order to identify specific publishers with notable success or failure such that we can better understand the how the literary marketplace for audiobooks has changed throughout the past 20 years with the advent of new technologies and the increasing digitization of our world. First, we extract the monthly checkouts from each of the top 10 audiobook publishers from 2005-2022, as shown below in Figure \ref{fig:3}.
+
+<<echo=FALSE,fig.width=10,fig.height=5>>=
+query <- paste0("
+SELECT Publisher, SUM(Checkouts) as CheckoutSum
+FROM checkouts
+WHERE MaterialType = 'AUDIOBOOK'
+GROUP BY Publisher
+ORDER BY CheckoutSum
+;")
+
+res <- dbSendQuery(dcon, query)
+audiobookPublishers <- dbFetch(res, -1)
+dbClearResult(res)
+
+topAudiobookPublishers <- tail(audiobookPublishers$Publisher, 10)
+
+query <- paste0("
+SELECT CheckoutYear, CheckoutMonth, Publisher, SUM(Checkouts) as CheckoutSum
+FROM checkouts
+WHERE MaterialType = 'AUDIOBOOK'
+GROUP BY CheckoutYear, CheckoutMonth, Publisher
+ORDER BY CheckoutYear, CheckoutMonth, Publisher
+;")
+res <- dbSendQuery(dcon, query)
+audiobookPublisherData <- dbFetch(res, -1)
+dbClearResult(res)
+
+audiobookPublisherData = audiobookPublisherData[audiobookPublisherData$Publisher %in% topAudiobookPublishers,]
+
+audiobookPublisherData$Date <- with(audiobookPublisherData, sprintf("%d-%02d-01", CheckoutYear, CheckoutMonth))
+audiobookPublisherData$Date <- as.Date(audiobookPublisherData$Date, format = "%Y-%m-%d")
+@
+
+\begin{figure}[H]
+\begin{center}
+<<echo=FALSE,fig.width=7,fig.height=5>>=
+ggplot(audiobookPublisherData) +
+  geom_line(mapping=aes(x=Date, y=CheckoutSum, color=Publisher)) +
+  labs(
+    title = "Monthy checkouts of top 10 audiobook publishers from 2005-2022",
+    x = "Date",
+    y = "Monthly Checkouts"
+  )
+@
+\end{center}
+\caption{Monthy checkouts of top 10 audiobook publishers from 2005-2022}\label{fig:3}
+\end{figure}
+
+As noted above, such time series data is not easily comparable, so we rescale the monthly checkouts from each publisher to the range [0, 1]. The rescaled time series is displayed below in Figure \ref{fig:4}.
+
+\begin{figure}[H]
+\begin{center}
+<<echo=FALSE,fig.width=10,fig.height=5>>=
+audiobookPublisherDataRescaled <- data.frame(matrix(nrow = 0, ncol = length(colnames(audiobookPublisherData))))
+colnames(audiobookPublisherDataRescaled) <- colnames(audiobookPublisherData)
+for (publisher in topAudiobookPublishers){
+  publisherSubset <- subset(audiobookPublisherData, Publisher == publisher)
+  publisherSubset$CheckoutSum <- rescale(publisherSubset$CheckoutSum)
+  audiobookPublisherDataRescaled <- rbind(audiobookPublisherDataRescaled, publisherSubset)
+}
+
+ggplot(audiobookPublisherDataRescaled) +
+  geom_line(mapping=aes(x=Date, y=CheckoutSum)) + 
+  facet_wrap(~Publisher, nrow = 2) +
+  labs(
+    title = "Checkouts of audiobook, book, and e-book formats from 2005-2022 (Scaled)",
+    x = "Date",
+    y = "Monthly Checkouts (Scaled)"
+  )
+@
+\end{center}
+\caption{Monthy checkouts of top 10 audiobook publishers from 2005-2022 (Scaled)}\label{fig:4}
 \end{figure}
 
 \end{document}
