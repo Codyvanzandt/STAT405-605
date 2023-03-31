@@ -107,59 +107,44 @@ Our supplementary dataset comes from the UCSD Book Graph initiative and contains
 \label{reviewvars}
 \end{table}
 
-\section{Behind the Scenes}
+\newpage
+\section{Analyzing properties of book popularity}
 
-A not-insubstantial proportion of the effort this week has happened behind the scenes
-on problems that do not lend themselves to a neat data visualization or pithy 
-statistical insight. This work, however, is critical to the future of this project,
-As such, we would take some small space to summarize two of the most important
-back-end efforts: fuzzy string matching between datasets and popularity curve construction.
+We first pose the question, "why do some books enjoy widespread acclaim while others fizzle?" More broadly, we are interested in what specific characteristics of books make them more popular than others. We begin this exploration by analyzing the publishers of the top fifty books checked out at the Seattle Public Library.
 
-\subsection{Fuzzy Title Matching}
+Specifically, we first filter for the top 50 books by aggregate number of checkouts from 2005 to 2022, then keep a count of their associated publishers. We found that most publishers only have a single "popular" book, so we group any publisher with less than 3 books together in an 'Other' category.
 
-To make best use of our UCSD Book Graph Goodreads data, we need to match unique
-book IDs from Goodreads reviews to book checkouts from the Seattle Public Library.
-The Seattle data, however, is messy.
-Author information is often encoded in the title field, which is itself often
-full of misspellings and other typographical oddities. Dataset alignment, then,
-is a challenging problem in its own. As a first attempt, we employ a fuzzy string matching algorithm that computes
-pairwise similarity between the Goodreads and Seattle book titles and 
-reports a match when that similarity crosses a given threshold.
-Our current similarity measure is Jaro-Winkler,
-which we selected primarily because it weighs matches at the beginning of
-a string more heavily than matches towards the end. Given the erroneous additions
-frequently appended to the end of Seattle library book titles, Jaro-Winkler 
-ought to perform well. After parameter optimization, we report that approximately
-thirty percent of Seattle titles have been matched to Goodreads book IDs. 
-With more nuanced title preprocessing and multivariable matching across author and
-publisher, we anticipate that the match rate could approach 50 percent.
+<<echo=FALSE,fig.width=7,fig.height=5>>=
+query <- paste0("
+SELECT Publisher, COUNT(1)
+FROM (SELECT Title, Publisher, SUM(Checkouts) AS count 
+      FROM checkouts 
+      WHERE MaterialType=\'BOOK\' AND Publisher IS NOT NULL
+      GROUP BY Title 
+      ORDER BY count DESC
+      LIMIT 50)
+GROUP BY Publisher
+")
 
-\subsection{Popularity Curve Clustering}
+res <- dbSendQuery(dcon, query)
+df <- dbFetch(res, n = -1)
+dbClearResult(res)
 
-Beyond string matching, we also report some initial research into time series 
-dimensionality reduction and clustering. In considering book popularity over time,
-it is natural to ask if there are certain popularity patterns that recur
-across books, publishers, and genres. If these common patterns can 
-be identified, then perhaps they can be predicted. After consulting the 
-literature on time series clustering, we present a pipeline that we believe
-could identify clusters of books that exhibit similar popularity patterns. 
-This pipeline computes monthly popularity time series curves and transforms them
-through z-normalization, discrete cosine transform, dynamic time warping, and k-medoids clustering. \\
+publishers <- data.frame(name = c('Hyperion',
+                                  'Other',
+                                  'Scholastic',
+                                  'Beginner Books',
+                                  'Harper & Row'),
+                         num = c(17, 17, 6, 4, 4))
 
-Z-normalization makes the shape of popularity curves comparable across books with dramatically different raw checkout numbers. Discrete cosine transform 
-reduces the dimensionality by decomposing and recomposing the time series
-using a smaller number of cosine waves. Dynamic time warping defines a similarity
-score for popularity curves with potentially non-overlapping time domains. And finally,
-k-medoids clustering modififes the more familiar k-medoids clustering by replacing
-average-computed centroids with median-computed centroids. K-medoids is a less common
-choice than k-means, so the selection is worth commenting upon. Compared with k-means,
-k-medoids is less sensitive to outliers and replaces the creation of artificial 
-average-based centroids with median-based ones This sidesteps the need 
-to average different popularity curves together during centroid creation --
-a questionable practice to be sure. \\
+ggplot(publishers, aes(x = reorder(name, -num), y = num)) + 
+  geom_bar(stat='identity') +
+  labs(title="Breakdown of Top 50 Books by Publisher") +
+  xlab("Publisher") +
+  ylab("Number of Books in the Top 50")
+@
 
-We hope that this unsupervised machine learning pipeline will, once implemented,
-make possible a variety of supervised and predictive modeling tasks.
+The bar plot shows that Hyperion has published the highest number of "popular" books at the Seattle Public Library. However, they are still tied with the 'Other' category, which implies that the publisher doesn't really have an effect on the popularity of the book. This seems to makes sense; most readers don't consider the publishing company when deciding what book to read.
 
 \newpage
 \section{Trends in Book, E-Book, and Audiobook Publishers}
@@ -302,5 +287,53 @@ ggplot(audiobookPublisherDataRescaled) +
 \end{center}
 \caption{Monthy checkouts of top 10 audiobook publishers from 2005-2022 (Scaled)}\label{fig:4}
 \end{figure}
+
+\section{Appendix}
+
+\subsection{Fuzzy Title Matching}
+
+To make best use of our UCSD Book Graph Goodreads data, we need to match unique
+book IDs from Goodreads reviews to book checkouts from the Seattle Public Library.
+The Seattle data, however, is messy.
+Author information is often encoded in the title field, which is itself often
+full of misspellings and other typographical oddities. Dataset alignment, then,
+is a challenging problem in its own. As a first attempt, we employ a fuzzy string matching algorithm that computes
+pairwise similarity between the Goodreads and Seattle book titles and 
+reports a match when that similarity crosses a given threshold.
+Our current similarity measure is Jaro-Winkler,
+which we selected primarily because it weighs matches at the beginning of
+a string more heavily than matches towards the end. Given the erroneous additions
+frequently appended to the end of Seattle library book titles, Jaro-Winkler 
+ought to perform well. After parameter optimization, we report that approximately
+thirty percent of Seattle titles have been matched to Goodreads book IDs. 
+With more nuanced title preprocessing and multivariable matching across author and
+publisher, we anticipate that the match rate could approach 50 percent.
+
+\subsection{Popularity Curve Clustering}
+
+Beyond string matching, we also report some initial research into time series 
+dimensionality reduction and clustering. In considering book popularity over time,
+it is natural to ask if there are certain popularity patterns that recur
+across books, publishers, and genres. If these common patterns can 
+be identified, then perhaps they can be predicted. After consulting the 
+literature on time series clustering, we present a pipeline that we believe
+could identify clusters of books that exhibit similar popularity patterns. 
+This pipeline computes monthly popularity time series curves and transforms them
+through z-normalization, discrete cosine transform, dynamic time warping, and k-medoids clustering. \\
+
+Z-normalization makes the shape of popularity curves comparable across books with dramatically different raw checkout numbers. Discrete cosine transform 
+reduces the dimensionality by decomposing and recomposing the time series
+using a smaller number of cosine waves. Dynamic time warping defines a similarity
+score for popularity curves with potentially non-overlapping time domains. And finally,
+k-medoids clustering modififes the more familiar k-medoids clustering by replacing
+average-computed centroids with median-computed centroids. K-medoids is a less common
+choice than k-means, so the selection is worth commenting upon. Compared with k-means,
+k-medoids is less sensitive to outliers and replaces the creation of artificial 
+average-based centroids with median-based ones This sidesteps the need 
+to average different popularity curves together during centroid creation --
+a questionable practice to be sure. \\
+
+We hope that this unsupervised machine learning pipeline will, once implemented,
+make possible a variety of supervised and predictive modeling tasks.
 
 \end{document}
