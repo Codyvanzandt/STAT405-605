@@ -1,51 +1,69 @@
 ---
-title: "ProjectSlides"
+title: "Analyzing Book <br> Checkout Trends at the <br> Seattle Public Library"
 author: "Sarvesh Fotedar, Ekrem Kizilkaya, Abbas Shaikh, Cody VanZandt, Andy Wang"
-date: "2023-04-18"
 output: ioslides_presentation
 runtime: shiny
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
+
+library(RSQLite)
+library(ggplot2)
+library(scales)
+
+setwd('..')
+dcon <- dbConnect(SQLite(), dbname = "data/SQLData.db")
 ```
 
-## Shiny Presentation
+## About the Datasets
 
-This R Markdown presentation is made interactive using Shiny. The viewers of the presentation can change the assumptions underlying what's presented and see the results immediately. 
-
-To learn more, see [Interactive Documents](http://rmarkdown.rstudio.com/authoring_shiny.html).
-
-## Interactive Plot
-
-```{r eruptions}
-inputPanel(
-  selectInput("n_breaks", label = "Number of bins:",
-              choices = c(10, 20, 35, 50), selected = 20),
+- **Seattle Public Library Checkouts**: ~11 million observations from 2018 to 2022
+  - Medium (physical, audio-book, etc)
+  - Title, Subjects
+  - Publisher
+- **GoodReads Reviews**: ~15 million reviews for 2 million books from 2013 to 2017
+  - Rating
+  - Review Text
   
-  sliderInput("bw_adjust", label = "Bandwidth adjustment:",
-              min = 0.2, max = 2, value = 1, step = 0.2)
-)
+# Exploratory Data Analysis
 
-renderPlot({
-  hist(faithful$eruptions, probability = TRUE, breaks = as.numeric(input$n_breaks),
-       xlab = "Duration (minutes)", main = "Geyser eruption duration")
-  
-  dens <- density(faithful$eruptions, adjust = input$bw_adjust)
-  lines(dens, col = "blue")
-})
+## Number of Checkouts by Month
+
+<center>
+```{r 1, results='hide', fig.width=8, fig.height=5}
+query <- paste0("
+SELECT CheckoutMonth as month, CheckoutYear as year, SUM(Checkouts) as total
+FROM checkouts
+WHERE CheckoutYear >= 2018 AND CheckoutYear <= 2022
+GROUP BY CheckoutMonth, CheckoutYear
+ORDER BY CheckoutYear, CheckoutMonth ASC;
+")
+{
+  res <- dbSendQuery(dcon, query)
+  df <- dbFetch(res, n = -1)
+  dbClearResult(res)
+  remove(query)
+}
+df$date <- as.Date(with(df, sprintf("%d-%02d-01", year, month)),
+                   format = "%Y-%m-%d")
+
+ggplot(df, aes(x=date, y=total)) + 
+  geom_line() +
+  labs(
+    x = "\nDate",
+    y = "Checkouts\n"
+  ) +
+  scale_x_date(date_breaks = "1 year", date_labels = "%Y") +
+  scale_y_continuous(labels = label_number(suffix = "K", scale = 1e-3)) +
+  theme_bw() +
+  theme(axis.text=element_text(size=12),
+        axis.title=element_text(size=14))
 ```
+</center>
 
-## Bullets
+## Number of Checkouts by Medium
 
-- Bullet 1
-- Bullet 2
-- Bullet 3
+## Most Popular Subjects
 
-## R Output
-
-```{r cars}
-summary(cars)
-```
-
-
+## Most Popular Books
