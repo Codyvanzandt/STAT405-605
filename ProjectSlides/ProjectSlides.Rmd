@@ -1,0 +1,69 @@
+---
+title: "Analyzing Book <br> Checkout Trends at the <br> Seattle Public Library"
+author: "Sarvesh Fotedar, Ekrem Kizilkaya, Abbas Shaikh, Cody VanZandt, Andy Wang"
+output: ioslides_presentation
+runtime: shiny
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+
+library(RSQLite)
+library(ggplot2)
+library(scales)
+
+setwd('..')
+dcon <- dbConnect(SQLite(), dbname = "data/SQLData.db")
+```
+
+## About the Datasets
+
+- **Seattle Public Library Checkouts**: ~11 million observations from 2018 to 2022
+  - Medium (physical, audio-book, etc)
+  - Title, Subjects
+  - Publisher
+- **GoodReads Reviews**: ~15 million reviews for 2 million books from 2013 to 2017
+  - Rating
+  - Review Text
+  
+# Exploratory Data Analysis
+
+## Number of Checkouts by Month
+
+<center>
+```{r 1, results='hide', fig.width=8, fig.height=5}
+query <- paste0("
+SELECT CheckoutMonth as month, CheckoutYear as year, SUM(Checkouts) as total
+FROM checkouts
+WHERE CheckoutYear >= 2018 AND CheckoutYear <= 2022
+GROUP BY CheckoutMonth, CheckoutYear
+ORDER BY CheckoutYear, CheckoutMonth ASC;
+")
+{
+  res <- dbSendQuery(dcon, query)
+  df <- dbFetch(res, n = -1)
+  dbClearResult(res)
+  remove(query)
+}
+df$date <- as.Date(with(df, sprintf("%d-%02d-01", year, month)),
+                   format = "%Y-%m-%d")
+
+ggplot(df, aes(x=date, y=total)) + 
+  geom_line() +
+  labs(
+    x = "\nDate",
+    y = "Checkouts\n"
+  ) +
+  scale_x_date(date_breaks = "1 year", date_labels = "%Y") +
+  scale_y_continuous(labels = label_number(suffix = "K", scale = 1e-3)) +
+  theme_bw() +
+  theme(axis.text=element_text(size=12),
+        axis.title=element_text(size=14))
+```
+</center>
+
+## Number of Checkouts by Medium
+
+## Most Popular Subjects
+
+## Most Popular Books
