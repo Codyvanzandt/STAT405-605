@@ -192,6 +192,142 @@ for(i in seq_along(titles)){
 4.  How has recent conglomeration of publishers changed the literary marketplace?
 5.  And, ultimately, to what degree can the success or failure of a book be predicted?
 
+## Reading Lines
+
+>- Normal People: a Novel
+
+>- Circe: a Novel
+
+## Are Reading Lines More Popular?
+
+<center>
+```{r, results='hide', warning=FALSE, message=FALSE, fig.width=8, fig.height=5}
+query <- paste0("
+SELECT *
+FROM checkouts
+WHERE CheckoutYear >= 2018 AND CheckoutYear <= 2022
+")
+{
+  res <- dbSendQuery(dcon, query)
+  checkouts <- dbFetch(res, n = -1)
+  dbClearResult(res)
+  remove(query)
+}
+
+custom_clean_strings <- function(x){
+  x <- sub("\\s?\\/\\s?.*$", "", x)
+  x <- sub("\\[.*\\]", "", x)
+  tolower(x)
+}
+
+has_reading_line <- function(x, line="novel"){
+  str_detect(x, paste0(":\\s?(a|A)\\s",line))
+}
+
+strip_reading_line <- function(x){
+  str_split_i(x, "\\s?:\\s", 1)
+}
+
+limit_text <- function(x, words=2){
+  x <- str_split_1(x, ",")[1]
+  x <- str_replace_all(x, "\\W+", " ")
+  x <- str_split_1(x, "\\s")
+  paste(x[1:min(words, length(x))], collapse=" ")
+}
+
+
+checkouts <- checkouts %>%
+  filter(MaterialType %in% c("EBOOK", "AUDIOBOOK", "BOOK") ) %>%
+  mutate(Title = custom_clean_strings(Title),
+         Date = as.Date(paste0(CheckoutYear,"-",CheckoutMonth,"-01"), "%Y-%m-%d"),
+         reading_line = has_reading_line(Title))
+
+word_of_interest <- "novel"
+
+books_with_tag <- checkouts %>%
+  mutate(id_checkouts = row_number()) %>%
+  filter( has_reading_line(Title) ) %>%
+  group_by(Title) %>%
+  summarize(n=sum(Checkouts)) %>%
+  arrange(desc(n)) %>%
+  pull(unique(Title))
+
+books_without_tag <- unique(strip_reading_line(books_with_tag))
+
+both <- checkouts %>%
+  filter(strip_reading_line(Title) %in% books_without_tag ) %>%
+  mutate(reading_line = has_reading_line(Title)) %>%
+  group_by(reading_line) %>%
+  mutate( id =ifelse(reading_line == TRUE, row_number(), NA)) %>%
+  ungroup()
+
+both$reading_line<- factor(both$reading_line, levels=c(TRUE, FALSE))
+
+# Books
+both %>%
+  filter(MaterialType == "BOOK") %>%
+  group_by(reading_line, Date) %>%
+  summarize(checkouts = mean(Checkouts)) %>%
+  ggplot() +
+  geom_smooth(aes(Date, checkouts, color=reading_line)) +
+  ggtitle("Novel Popularity by Reading Line") +
+  xlab("Time") +
+  ylab("Mean Checkouts per Book per Month") +
+  scale_color_manual(values=c("blue", "red")) +
+  labs(color = "Reading Line")
+
+```
+</center>
+
+## Where to Publish
+
+<center>
+```{r, results='hide', warning=FALSE, message=FALSE, fig.width=8, fig.height=5}
+
+literary_publishers <- checkouts %>%
+  filter(MaterialType == "BOOK") %>%
+  group_by(Publisher ) %>%
+  add_count() %>%
+  filter(n > 1000) %>%
+  ungroup() %>%
+  group_by(Publisher) %>% 
+  summarise(reading_line = mean(reading_line), quality=mean(Checkouts)) %>%
+  arrange(desc(reading_line)) %>%
+  filter(reading_line > .05)
+
+
+best_literary_publishers <- literary_publishers %>%
+  filter(reading_line >= .2*sd(reading_line) + mean(reading_line) & quality >= .20*sd(quality) + mean(quality)) %>%
+  mutate(publisher = unname(sapply(Publisher, limit_text)))
+
+ggplot(literary_publishers,aes(reading_line, quality)) +
+  geom_point() +
+  geom_point(data=best_literary_publishers,color="red")+
+  scale_x_log10()+
+  scale_y_log10()+
+  ggtitle("Finding a Quality Literary Publisher")+
+  xlab("Literariness") +
+  ylab("Quality")
+```
+</center>
+
+## (The Best of) Where to Publish
+
+<center>
+```{r, results='hide', warning=FALSE, message=FALSE, fig.width=8, fig.height=5}
+
+ggplot(best_literary_publishers,aes(reading_line, quality)) +
+  geom_point(data=best_literary_publishers,color="red")+
+  geom_text(aes(label=publisher), size=3, vjust=1.5) +
+  scale_x_log10()+
+  scale_y_log10()+
+  ggtitle("The Best Literary Publishers")+
+  xlab("Literariness") +
+  ylab("Quality")
+```
+</center>
+
+
 # Killer Plot
 
 ## Killer Plot - Catching Fire / Suzanne Collins
@@ -237,7 +373,7 @@ plot_base_graph <- function(x, y){
   grid.yaxis()
 }
 
-plot_word_timeseries(data, "Catching fire / Suzanne Collins.")
+plot_word_timeseries(data, "Catching fire / Suzanne Collins.", remove_overlap=TRUE)
 ```
 </center>
 
@@ -246,14 +382,6 @@ plot_word_timeseries(data, "Catching fire / Suzanne Collins.")
 <center>
 ```{r killer2, results='hide', fig.width=8, fig.height=5}
 plot_word_timeseries(data, "The Girl on the Train: A Novel")
-```
-</center>
-
-## Killer Plot - Captain Underpants 4 / Dav Pilkey
-
-<center>
-```{r killer3, results='hide', fig.width=8, fig.height=5}
-plot_word_timeseries(data, "Captain Underpants and the perilous plot of Professor Poopypants : the fourth epic novel / by Dav Pilkey.")
 ```
 </center>
 
