@@ -467,64 +467,6 @@ grid.arrange(plot1, plot2, ncol=2)
 ```
 </center>
 
-# Killer Plot
-
-## Killer Plot - Catching Fire / Suzanne Collins
-
-<center>
-```{r killer, results='hide', fig.width=8, fig.height=5}
-setwd('..')
-data <- read.csv("data/killer_plot_data.csv")
-
-plot_word_timeseries <- function(data, book_title, smoothing_coefficient=2/3, show_line=FALSE, remove_overlap=FALSE){
-  title_data <- data %>%
-    filter(title==book_title) %>%
-    mutate(date = row_number())
-  
-  title_checkouts_smoothed <- lowess(title_data$checkouts, f=smoothing_coefficient)
-  
-  output_plot <- plot_base_graph(title_checkouts_smoothed$x, title_checkouts_smoothed$y)
-  
-  col <- ifelse(
-    title_data$rating < 3, "firebrick",
-    ifelse(
-      title_data$rating > 3 & title_data$rating < 5, "gold3", "darkgreen"
-    )
-  )
-  grid.text(title_data$word, x=title_checkouts_smoothed$x, title_checkouts_smoothed$y,
-            default.units="native", gp=gpar(fontsize=10, col=col), check.overlap=remove_overlap)
-  
-  if(show_line){
-    grid.lines(title_checkouts_smoothed$x, title_checkouts_smoothed$y, default.units="native")  
-  }
-  
-  output_plot
-  
-}
-
-plot_base_graph <- function(x, y){
-  grid.newpage()
-  vp <- plotViewport(margins = c(5.1, 4.1, 4.1, 2.1))
-  pushViewport(vp)
-  pushViewport(dataViewport(x, y))
-  grid.rect()
-  grid.xaxis()
-  grid.yaxis()
-}
-
-plot_word_timeseries(data, "Catching fire / Suzanne Collins.", remove_overlap=TRUE)
-```
-</center>
-
-## Killer Plot - The Girl on the Train: A Novel / Paula Hawkins
-
-<center>
-```{r killer2, results='hide', fig.width=8, fig.height=5}
-plot_word_timeseries(data, "The Girl on the Train: A Novel")
-```
-</center>
-
-
 # Secondary Dataset
 
 ## Sentiment Analysis
@@ -656,6 +598,63 @@ ggplot(review_cnt_std, aes(x = std_deviation, y = review_count)) +
 
 ggplot(sent_rat, aes(x = as.factor(rating), y = len_log)) + geom_boxplot() + labs(title = "Distribution of ln(Review Length) by Score Given", x = "Score Given", y = "ln(review length)")
 
+```
+</center>
+
+# Killer Plot
+
+## Killer Plot - Catching Fire / Suzanne Collins
+
+<center>
+```{r killer, results='hide', fig.width=8, fig.height=5}
+setwd('..')
+data <- read.csv("data/killer_plot_data.csv")
+
+plot_word_timeseries <- function(data, book_title, smoothing_coefficient=2/3, show_line=FALSE, remove_overlap=FALSE){
+  title_data <- data %>%
+    filter(title==book_title) %>%
+    mutate(date = row_number())
+  
+  title_checkouts_smoothed <- lowess(title_data$checkouts, f=smoothing_coefficient)
+  
+  output_plot <- plot_base_graph(title_checkouts_smoothed$x, title_checkouts_smoothed$y)
+  
+  col <- ifelse(
+    title_data$rating < 3, "firebrick",
+    ifelse(
+      title_data$rating > 3 & title_data$rating < 5, "gold3", "darkgreen"
+    )
+  )
+  grid.text(title_data$word, x=title_checkouts_smoothed$x, title_checkouts_smoothed$y,
+            default.units="native", gp=gpar(fontsize=10, col=col), check.overlap=remove_overlap)
+  
+  if(show_line){
+    grid.lines(title_checkouts_smoothed$x, title_checkouts_smoothed$y, default.units="native")  
+  }
+  
+  output_plot
+  
+}
+
+plot_base_graph <- function(x, y){
+  grid.newpage()
+  vp <- plotViewport(margins = c(5.1, 4.1, 4.1, 2.1))
+  pushViewport(vp)
+  pushViewport(dataViewport(x, y))
+  grid.rect()
+  grid.xaxis()
+  grid.yaxis()
+}
+
+plot_word_timeseries(data, "Catching fire / Suzanne Collins.", remove_overlap=TRUE)
+```
+</center>
+
+## Killer Plot - The Girl on the Train: A Novel / Paula Hawkins
+
+<center>
+```{r killer2, results='hide', fig.width=8, fig.height=5}
+plot_word_timeseries(data, "The Girl on the Train: A Novel")
 ```
 </center>
 
