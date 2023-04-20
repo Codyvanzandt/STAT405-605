@@ -344,6 +344,44 @@ ggplot(best_literary_publishers,aes(reading_line, quality)) +
 ```
 </center>
 
+## Controversy
+
+Controversy score is defined as $\frac{pn}{|p-n|}$,
+where $p$ is the number of 5-star reviews and $n$ is the number of 1-star reviews
+
+## Contorversial Books
+
+```{r}
+controversial_books <- read_csv("./data/controversial_titles.csv")
+controversial_titles %>% 
+  mutate( c = c - mean(c)) %>%
+  mutate(title = reorder(title, c), c_color = ifelse(c>0,"red", "blue")) %>%
+  ggplot(aes(title, c, fill = c_color)) +
+  geom_col() +
+  coord_flip() + 
+  labs(y = "Controversy Score", x="Title", title="Most and Least Controversial Texts")
+```
+
+## Controversial Words
+
+```{r}
+
+controversial_words <- read_csv("./data/controversial_words.csv")
+
+slice_tail(controversial_words, n=-2) %>% 
+  filter(row_number() > max(row_number()) - 20 | row_number() <= 20) %>% 
+  mutate(
+    term = reorder(sub("tfidf_review_text_", "", term), estimate),
+    term_color = ifelse(estimate>0,"controversial", "uncontroversial"),
+    ) %>%
+  ggplot(aes(term, estimate, fill = term_color)) +
+  geom_col() +
+  coord_flip() + 
+  labs(y = "Controversy Score", x="Title", title="Controversial Review Language",
+       fill = ""
+       )
+```
+
 
 # Killer Plot
 
