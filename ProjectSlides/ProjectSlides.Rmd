@@ -14,6 +14,7 @@ library(dplyr)
 library(ggplot2)
 library(ggbreak)
 library(scales)
+library(grid)
 
 setwd('..')
 source("useful_utils.R")
@@ -23,14 +24,14 @@ dcon <- dbConnect(SQLite(), dbname = "data/SQLData.db")
 
 ## About the Datasets
 
-- **Seattle Public Library Checkouts**: ~11 million observations from 2018 to 2022
-  - Medium (physical, audio-book, etc)
-  - Title, Subjects
-  - Publisher
-- **GoodReads Reviews**: ~15 million reviews for 2 million books from 2013 to 2017
-  - Rating
-  - Review Text
-  
+-   **Seattle Public Library Checkouts**: \~11 million observations from 2018 to 2022
+    -   Medium (physical, audio-book, etc)
+    -   Title, Subjects
+    -   Publisher
+-   **GoodReads Reviews**: \~15 million reviews for 2 million books from 2013 to 2017
+    -   Rating
+    -   Review Text
+    
 # Exploratory Data Analysis
 
 ## Number of Checkouts by Month
@@ -106,6 +107,7 @@ ggplot(mat_types) +
 
 ## Most Popular Subjects
 
+<center>
 ```{r 3, results='hide', fig.width=8, fig.height=5}
 bars <- table(unlist(strsplit(checkout_data$Subjects, ", ")))
 bars <- bars[order(-bars)][1:7]
@@ -114,9 +116,11 @@ pie(bars[1:7], main="Top 7 Checked-Out Book Subjects, 2018-2022",
     col=c('coral1', 'lightsalmon', 'moccasin', 'palegreen',
           'lightskyblue', 'mediumorchid3', 'hotpink1'))
 ```
+</center>
 
 ## Most Popular Books
 
+<center>
 ```{r 4, results='hide', fig.width=8, fig.height=5}
 is_book <- checkout_data[["MaterialType"]] == "BOOK"
 book_checkouts <- checkout_data[is_book,c("Title", "CheckoutYear", "Checkouts")]
@@ -176,3 +180,80 @@ for(i in seq_along(titles)){
   axis(2, at=i, labels=clean_titles[[i]], col.axis = colors[[i]])
 }
 ```
+</center>
+
+# Data-Driven Insights
+
+## Guiding Questions
+
+1.  Why do some books enjoy widespread acclaim while others fizzle?
+2.  Do popular books explode onto the scene or accumulate readers more gradually?
+3.  How do the popular success and critical acclaim of novels differ?
+4.  How has recent conglomeration of publishers changed the literary marketplace?
+5.  And, ultimately, to what degree can the success or failure of a book be predicted?
+
+# Killer Plot
+
+## Killer Plot - Catching Fire / Suzanne Collins
+
+<center>
+```{r killer, results='hide', fig.width=8, fig.height=5}
+setwd('..')
+data <- read.csv("data/killer_plot_data.csv")
+
+plot_word_timeseries <- function(data, book_title, smoothing_coefficient=2/3, show_line=FALSE, remove_overlap=FALSE){
+  title_data <- data %>%
+    filter(title==book_title) %>%
+    mutate(date = row_number())
+  
+  title_checkouts_smoothed <- lowess(title_data$checkouts, f=smoothing_coefficient)
+  
+  output_plot <- plot_base_graph(title_checkouts_smoothed$x, title_checkouts_smoothed$y)
+  
+  col <- ifelse(
+    title_data$rating < 3, "firebrick",
+    ifelse(
+      title_data$rating > 3 & title_data$rating < 5, "gold3", "darkgreen"
+    )
+  )
+  grid.text(title_data$word, x=title_checkouts_smoothed$x, title_checkouts_smoothed$y,
+            default.units="native", gp=gpar(fontsize=10, col=col), check.overlap=remove_overlap)
+  
+  if(show_line){
+    grid.lines(title_checkouts_smoothed$x, title_checkouts_smoothed$y, default.units="native")  
+  }
+  
+  output_plot
+  
+}
+
+plot_base_graph <- function(x, y){
+  grid.newpage()
+  vp <- plotViewport(margins = c(5.1, 4.1, 4.1, 2.1))
+  pushViewport(vp)
+  pushViewport(dataViewport(x, y))
+  grid.rect()
+  grid.xaxis()
+  grid.yaxis()
+}
+
+plot_word_timeseries(data, "Catching fire / Suzanne Collins.")
+```
+</center>
+
+## Killer Plot - The Girl on the Train: A Novel / Paula Hawkins
+
+<center>
+```{r killer2, results='hide', fig.width=8, fig.height=5}
+plot_word_timeseries(data, "The Girl on the Train: A Novel")
+```
+</center>
+
+## Killer Plot - Captain Underpants 4 / Dav Pilkey
+
+<center>
+```{r killer3, results='hide', fig.width=8, fig.height=5}
+plot_word_timeseries(data, "Captain Underpants and the perilous plot of Professor Poopypants : the fourth epic novel / by Dav Pilkey.")
+```
+</center>
+
