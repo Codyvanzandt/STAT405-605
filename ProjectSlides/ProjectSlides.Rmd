@@ -351,9 +351,10 @@ where $p$ is the number of 5-star reviews and $n$ is the number of 1-star review
 
 ## Contorversial Books
 
-```{r}
+```{r, warning=FALSE, message=FALSE}
+setwd('..')
 controversial_books <- read_csv("./data/controversial_titles.csv")
-controversial_titles %>% 
+controversial_books %>% 
   mutate( c = c - mean(c)) %>%
   mutate(title = reorder(title, c), c_color = ifelse(c>0,"red", "blue")) %>%
   ggplot(aes(title, c, fill = c_color)) +
@@ -364,8 +365,8 @@ controversial_titles %>%
 
 ## Controversial Words
 
-```{r}
-
+```{r, warning=FALSE, message=FALSE}
+setwd('..')
 controversial_words <- read_csv("./data/controversial_words.csv")
 
 slice_tail(controversial_words, n=-2) %>% 
