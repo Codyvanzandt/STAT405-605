@@ -22,6 +22,7 @@ library(wordcloud)
 library(SnowballC)
 library(Rtsne)
 library(pheatmap)
+library(gridExtra)
 
 setwd('..')
 source("useful_utils.R")
@@ -90,6 +91,14 @@ dbClearResult(res)
 
 bookFormatData$Date <- with(bookFormatData, sprintf("%d-%02d-01", CheckoutYear, CheckoutMonth))
 bookFormatData$Date <- as.Date(bookFormatData$Date, format = "%Y-%m-%d")
+
+ggplot(bookFormatData) +
+  geom_line(mapping=aes(x=Date, y=CheckoutSum, color = MaterialType)) +
+  labs(
+    title = "Monthy checkouts of book, e-book, and audiobook formats from 2005-2022",
+    x = "Date",
+    y = "Monthly Checkouts"
+  )
 ```
 </center>
 
@@ -390,6 +399,73 @@ slice_tail(controversial_words, n=-2) %>%
        )
 ```
 
+## Publisher Conglomeration
+
+<center>
+```{r, results='hide', warning=FALSE, message=FALSE, fig.width=8, fig.height=5}
+query <- paste0("
+SELECT Publisher, CheckoutYear, CheckoutMonth, SUM(Checkouts) as CheckoutSum, MaterialType
+FROM checkouts
+WHERE MaterialType = 'BOOK' OR MaterialType = 'EBOOK' OR MaterialType = 'AUDIOBOOK'
+GROUP BY Publisher, CheckoutYear, CheckoutMonth, MaterialType
+ORDER BY CheckoutSum
+;")
+
+res <- dbSendQuery(dcon, query)
+publishers <- dbFetch(res, -1)
+dbClearResult(res)
+
+publishers$Date <- with(publishers, sprintf("%d-%02d-01", CheckoutYear, CheckoutMonth))
+publishers$Date <- as.Date(publishers$Date, format = "%Y-%m-%d")
+
+totalPublishers <- publishers %>% 
+  group_by(Date) %>% 
+  summarise(sum = sum(CheckoutSum))
+
+totalPublishers$Proportion <- NA
+
+for (date in totalPublishers$Date){
+  dateSubset <- publishers[publishers$Date == date,]
+  topPublishers <- tail(dateSubset$Publisher, 0.05 * length(dateSubset$Publisher))
+  totalPublishers$Proportion[totalPublishers$Date == date] <- sum(dateSubset$CheckoutSum[dateSubset$Publisher %in% topPublishers]) / totalPublishers$sum[totalPublishers$Date == date]
+}
+
+sumPublishers <- publishers %>% 
+  group_by(Date, MaterialType) %>% 
+  summarise(TotalCheckouts = sum(CheckoutSum))
+
+sumPublishers$Proportion <- NA
+
+for (format in c("BOOK", "EBOOK", "AUDIOBOOK")){
+  dataSubset <- publishers[publishers$MaterialType == format,]
+  for (date in sumPublishers$Date[sumPublishers$MaterialType == format]){
+    dateSubset <- dataSubset[dataSubset$Date == date,]
+    topPublishers <- tail(dateSubset$Publisher, 0.05 * length(dateSubset$Publisher))
+    sumPublishers$Proportion[sumPublishers$Date == date & sumPublishers$MaterialType == format] <- sum(dateSubset$CheckoutSum[dateSubset$Publisher %in% topPublishers]) / sumPublishers$TotalCheckouts[sumPublishers$Date == date & sumPublishers$MaterialType == format]
+  }
+}
+
+plot1 <- ggplot(totalPublishers) +
+  geom_line(mapping=aes(x=Date, y=Proportion)) +
+  labs(
+    title = "Proportion of Checkouts from Top 5% of All Publishers",
+    x = "Date",
+    y = "Proportion of Montly Checkouts"
+  ) + 
+  scale_y_continuous(limits=c(0.75,1))
+
+plot2 <- ggplot(sumPublishers) +
+  geom_line(mapping=aes(x=Date, y=Proportion, color = MaterialType)) +
+  labs(
+    title = "Proportion of Checkouts from Top 5% of Publishers by Format",
+    x = "Date",
+    y = "Proportion of Montly Checkouts"
+  ) + 
+  scale_y_continuous(limits=c(0.1, 1))
+
+grid.arrange(plot1, plot2, ncol=2)
+```
+</center>
 
 # Killer Plot
 
