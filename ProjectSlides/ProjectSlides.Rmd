@@ -15,6 +15,13 @@ library(ggplot2)
 library(ggbreak)
 library(scales)
 library(grid)
+library(topicmodels)
+library(tm)
+library(Matrix)
+library(wordcloud)
+library(SnowballC)
+library(Rtsne)
+library(pheatmap)
 
 setwd('..')
 source("useful_utils.R")
@@ -349,7 +356,7 @@ ggplot(best_literary_publishers,aes(reading_line, quality)) +
 Controversy score is defined as $\frac{pn}{|p-n|}$,
 where $p$ is the number of 5-star reviews and $n$ is the number of 1-star reviews
 
-## Contorversial Books
+## Controversial Books
 
 ```{r, warning=FALSE, message=FALSE}
 setwd('..')
@@ -440,4 +447,141 @@ plot_word_timeseries(data, "Catching fire / Suzanne Collins.", remove_overlap=TR
 plot_word_timeseries(data, "The Girl on the Train: A Novel")
 ```
 </center>
+
+
+# Secondary Dataset
+
+## Sentiment Analysis
+<center>
+```{r, warning=FALSE, message=FALSE, results='hide', fig.width=8, fig.height=5}
+setwd("..")
+
+# setwd("/home/ekrem/Documents/classes/stat405/STAT405-605/")
+
+sent_rat <- readr::read_csv("./data/sent_rating.csv")
+ggplot(sent_rat, aes(x = score-rating)) +
+  geom_histogram(binwidth = 1, fill = "steelblue", color = "white") +
+  labs(x = "Difference", y = "Frequency", title = "Difference Between Rating and Sentiment Score")
+```
+</center>
+
+## Word Cloud
+
+<center>
+```{r, warning=FALSE, message=FALSE, results='hide', fig.width=8, fig.height=5}
+setwd("..")
+
+cleaned_docs <- read.csv("./data/cleaned.csv")
+
+corpus <- Corpus(VectorSource(cleaned_docs$text))
+corpus <- tm_map(corpus, content_transformer(tolower))
+corpus <- tm_map(corpus, removePunctuation)
+corpus <- tm_map(corpus, removeNumbers)
+corpus <- tm_map(corpus, removeWords, stopwords("english"))
+dtm <- DocumentTermMatrix(corpus)
+tdm <- TermDocumentMatrix(corpus)
+
+# Convert the term-document matrix to a matrix
+matrix <- as.matrix(tdm)
+
+# Calculate the frequency of words
+word_freqs <- sort(rowSums(matrix), decreasing = TRUE)
+
+# Create a data frame with words and their frequencies
+word_freqs_df <- data.frame(Word = names(word_freqs), Freq = word_freqs)
+
+# Create the word cloud
+wordcloud(words = word_freqs_df$Word, freq = word_freqs_df$Freq, min.freq = 1,
+          max.words = 200, random.order = FALSE, rot.per = 0.35,
+          colors = brewer.pal(8, "Dark2"))
+
+```
+</center>
+
+## Genre Similarity
+
+<center>
+```{r, warning=FALSE, message=FALSE, results='hide', fig.width=8, fig.height=5}
+num_topics <- 10
+lda_model <- LDA(dtm, k = num_topics, control = list(seed = 1234))
+
+theta <- posterior(lda_model)$topics
+
+tsne_result <- Rtsne(theta, perplexity = 2, check_duplicates = FALSE)
+
+# Create a data frame with the t-SNE results
+tsne_data <- data.frame(tsne_x = tsne_result$Y[, 1], tsne_y = tsne_result$Y[, 2])
+
+doc_labels <- cleaned_docs$genre
+
+# Create a data frame with the t-SNE results and labels
+tsne_data <- data.frame(tsne_x = tsne_result$Y[, 1], tsne_y = tsne_result$Y[, 2], label = doc_labels)
+
+# Create a scatterplot of the t-SNE results with labels
+ggplot(tsne_data, aes(x = tsne_x, y = tsne_y, label = label)) +
+  geom_point(size = 4, color = "blue") +
+  geom_text(aes(label = label), vjust = 1, hjust = 1, size = 3, color = "black") +
+  ggtitle("t-SNE Plot of Genre Based on LDA Topic Distributions") +
+  xlab("t-SNE Dimension 1") +
+  ylab("t-SNE Dimension 2")
+
+
+
+```
+</center>
+
+## Genre Similarity Matrix
+
+<center>
+```{r, warning=FALSE, message=FALSE, results='hide', fig.width=8, fig.height=5}
+library(proxy)
+
+# Calculate the topic distributions for each document
+theta <- posterior(lda_model)$topics
+
+# Calculate the Euclidean distance between documents
+similarity_matrix <- proxy::dist(theta, method = "Euclidean")
+similarity_matrix <- similarity_matrix / max(similarity_matrix)
+
+pheatmap(similarity_matrix,
+         cluster_rows = FALSE,
+         cluster_cols = FALSE,
+         labels_row = doc_labels,
+         labels_col = doc_labels,
+         main = "Genre Similarity Using Euclidean Distance",
+         xlab = "Documents",
+         ylab = "Documents",
+         color = colorRampPalette(c("Blue", "White"))(100))
+
+
+```
+</center>
+
+## Book Popularity vs Score Standard Deviation
+
+<center>
+```{r, warning=FALSE, message=FALSE, results='hide', fig.width=8, fig.height=5}
+
+setwd("..")
+review_cnt_std <- readr::read_csv("./data/review_cnt_std.csv")
+
+
+ggplot(review_cnt_std, aes(x = std_deviation, y = review_count)) +
+  geom_point(color = "blue", size = 2) +
+  labs(title = "Popularity vs Review Std", x = "Standard Deviation", y = "Review Count")
+
+```
+</center>
+
+## Review Length vs Score Given
+
+<center>
+```{r, warning=FALSE, message=FALSE, results='hide', fig.width=8, fig.height=5}
+
+ggplot(sent_rat, aes(x = as.factor(rating), y = len_log)) + geom_boxplot() + labs(title = "Distribution of ln(Review Length) by Score Given", x = "Score Given", y = "ln(review length)")
+
+```
+</center>
+
+## Questions?
 
