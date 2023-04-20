@@ -24,8 +24,8 @@ dcon <- dbConnect(SQLite(), dbname = "data/SQLData.db")
 
 ## About the Datasets
 
--   **Seattle Public Library Checkouts**: \~11 million observations from 2018 to 2022
-    -   Medium (physical, audio-book, etc)
+-   **Seattle Public Library Checkouts**: \~42 million observations from 2005 to 2022
+    -   Medium (physical, audio-book, CD, etc)
     -   Title, Subjects
     -   Publisher
 -   **GoodReads Reviews**: \~15 million reviews for 2 million books from 2013 to 2017
@@ -35,13 +35,11 @@ dcon <- dbConnect(SQLite(), dbname = "data/SQLData.db")
 # Exploratory Data Analysis
 
 ## Number of Checkouts by Month
-
 <center>
 ```{r 1, results='hide', fig.width=8, fig.height=5}
 query <- paste0("
 SELECT CheckoutMonth as month, CheckoutYear as year, SUM(Checkouts) as total
 FROM checkouts
-WHERE CheckoutYear >= 2018 AND CheckoutYear <= 2022
 GROUP BY CheckoutMonth, CheckoutYear
 ORDER BY CheckoutYear, CheckoutMonth ASC;
 ")
@@ -68,8 +66,27 @@ ggplot(df, aes(x=date, y=total)) +
 ```
 </center>
 
-## Number of Checkouts by Medium
+## Monthly Book, Ebook, and Audiobook Checkouts
+<center>
+```{r, results='hide', fig.width=8, fig.height=5}
+query <- paste0("
+SELECT CheckoutYear, CheckoutMonth, MaterialType, Publisher, SUM(Checkouts) as CheckoutSum
+FROM checkouts
+WHERE MaterialType = 'BOOK' OR MaterialType = 'EBOOK' OR MaterialType = 'AUDIOBOOK'
+GROUP BY CheckoutYear, CheckoutMonth, MaterialType
+ORDER BY CheckoutYear, CheckoutMonth, MaterialType
+;")
 
+res <- dbSendQuery(dcon, query)
+bookFormatData <- dbFetch(res, -1)
+dbClearResult(res)
+
+bookFormatData$Date <- with(bookFormatData, sprintf("%d-%02d-01", CheckoutYear, CheckoutMonth))
+bookFormatData$Date <- as.Date(bookFormatData$Date, format = "%Y-%m-%d")
+```
+</center>
+
+## Number of Checkouts by Medium
 <center>
 ```{r 2, results='hide', fig.width=8, fig.height=5}
 # Get Checkouts by Material Type
