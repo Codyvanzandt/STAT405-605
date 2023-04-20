@@ -9,10 +9,15 @@ runtime: shiny
 knitr::opts_chunk$set(echo = FALSE)
 
 library(RSQLite)
+library(tidyverse)
+library(dplyr)
 library(ggplot2)
+library(ggbreak)
 library(scales)
 
 setwd('..')
+source("useful_utils.R")
+checkout_data <- get_checkouts(2018:2022)
 dcon <- dbConnect(SQLite(), dbname = "data/SQLData.db")
 ```
 
@@ -64,6 +69,110 @@ ggplot(df, aes(x=date, y=total)) +
 
 ## Number of Checkouts by Medium
 
+<center>
+```{r 2, results='hide', fig.width=8, fig.height=5}
+# Get Checkouts by Material Type
+mat_types <- data.frame(table(checkout_data$MaterialType))
+colnames(mat_types) <- c("MaterialType", "NumCheckouts")
+
+# Sort in descending order
+mat_types <- mat_types[with(mat_types,order(-NumCheckouts)),]
+
+# Get Usage Class for each Material Type
+usage_class = c()
+for (type in mat_types$MaterialType){
+  usage_class[type] = checkout_data$UsageClass[checkout_data$MaterialType == type][1]
+}
+mat_types["UsageClass"] = as.factor(usage_class)
+
+# Add OTHER category as sum of all but first 15 columns, so that bar chart has top 15 material types and everything else under OTHER
+levels(mat_types$MaterialType) <- c(levels(mat_types$MaterialType), 'OTHER')
+levels(mat_types$UsageClass) <- c(levels(mat_types$UsageClass), 'Both')
+mat_types[16,] = c('OTHER', sum(mat_types$NumCheckouts[16:nrow(mat_types)]), 'Both')
+
+# Drop extra columns, resolve data types
+mat_types <- mat_types[-c(17:nrow(mat_types)),]
+mat_types$NumCheckouts <- as.numeric(mat_types$NumCheckouts)
+
+ggplot(mat_types) + 
+  aes(x = factor(MaterialType, level = mat_types$MaterialType), y = NumCheckouts, fill = factor(UsageClass, level = c("Physical", "Digital", "Both"))) +
+  geom_col() + 
+  theme(text = element_text(size=8), axis.text.x=element_text(angle = -90, vjust = 0.5, hjust=0)) +
+  labs(title = "Number of Checkouts by Material Type from 2018 to 2022", x = "Material Type", y = "Number of Checkouts", fill = "Usage Class") +
+  scale_y_cut(breaks=c(50000), which=c(1, 2), scales=c(5, 1), space = 0.02) +
+  scale_x_discrete(labels = function(x) wrap.labels(x, 10))
+```
+</center>
+
 ## Most Popular Subjects
 
+```{r 3, results='hide', fig.width=8, fig.height=5}
+bars <- table(unlist(strsplit(checkout_data$Subjects, ", ")))
+bars <- bars[order(-bars)][1:7]
+pie(bars[1:7], main="Top 7 Checked-Out Book Subjects, 2018-2022",
+    labels=names(bars),
+    col=c('coral1', 'lightsalmon', 'moccasin', 'palegreen',
+          'lightskyblue', 'mediumorchid3', 'hotpink1'))
+```
+
 ## Most Popular Books
+
+```{r 4, results='hide', fig.width=8, fig.height=5}
+is_book <- checkout_data[["MaterialType"]] == "BOOK"
+book_checkouts <- checkout_data[is_book,c("Title", "CheckoutYear", "Checkouts")]
+
+all_years_books <- book_checkouts[ 
+  book_checkouts$Title %in% book_checkouts[book_checkouts$CheckoutYear == 2018, "Title"] &
+    book_checkouts$Title %in% book_checkouts[book_checkouts$CheckoutYear == 2019, "Title"] &
+    book_checkouts$Title %in% book_checkouts[book_checkouts$CheckoutYear == 2020, "Title"] &
+    book_checkouts$Title %in% book_checkouts[book_checkouts$CheckoutYear == 2021, "Title"] &
+    book_checkouts$Title %in% book_checkouts[book_checkouts$CheckoutYear == 2022, "Title"],
+]
+
+title_counts <-aggregate(
+  all_years_books$Checkouts,
+  list(title=all_years_books$Title),
+  FUN=sum
+)
+
+top_books <- book_checkouts[
+  book_checkouts$Title %in% title_counts[
+    order(title_counts$x, decreasing=TRUE),
+  ][1:7,"title"],
+]
+
+top_books_counts <- aggregate(
+  top_books$Checkouts,
+  list(year=top_books$CheckoutYear, title=top_books$Title),
+  FUN=sum
+)
+
+book_positions_by_year <- top_books_counts %>%
+  group_by(year) %>%
+  mutate(rank = rank(-x))%>%
+  arrange(year, rank)
+
+get_ranks_by_year <- function(title){
+  positions <- book_positions_by_year[order(book_positions_by_year$year),]
+  positions[positions$title == title, "rank"]$rank
+}
+
+titles <- book_positions_by_year[
+  book_positions_by_year$year == 2018, "title"][["title"]]
+clean_titles <- wrap.labels(sapply(strsplit(titles," / "), `[`, 1), 16) 
+
+colors <- palette.colors(n=7)
+
+par(las=1, mar=c(5.1, 6.4, 4.1, 2.1 ))
+popular_plot <- plot(NULL, type="l", col="black", lwd=1.0,
+     main="Most Popular Books 2018-2022", xlab="Year", ylab = "", yaxt='n',
+     xlim=c(2018,2022), ylim=c(max(book_positions_by_year$rank),min(book_positions_by_year$rank)))
+
+
+for(i in seq_along(titles)){
+  title <- titles[[i]]
+  ranks <- get_ranks_by_year(title)
+  lines(2018:2022, ranks, col=colors[[i]])
+  axis(2, at=i, labels=clean_titles[[i]], col.axis = colors[[i]])
+}
+```
