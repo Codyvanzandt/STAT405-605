@@ -134,36 +134,43 @@ FROM (SELECT Title, Publisher, SUM(Checkouts) AS count
 GROUP BY Publisher
 ")
 
-res <- dbSendQuery(dcon, query)
-df <- dbFetch(res, n = -1)
-dbClearResult(res)
+# res <- dbSendQuery(dcon, query)
+# df <- dbFetch(res, n = -1)
+# dbClearResult(res)
 
-publishers <- data.frame(name = c('Hyperion',
-                                  'Other',
-                                  'Scholastic',
-                                  'Beginner Books',
-                                  'Harper & Row'),
-                         num = c(17, 17, 6, 4, 4))
+# publishers <- data.frame(name = c('Hyperion',
+#                                   'Other',
+#                                   'Scholastic',
+#                                   'Beginner Books',
+#                                   'Harper & Row'),
+#                          num = c(17, 17, 6, 4, 4))
 
-ggplot(publishers, aes(x = reorder(name, -num), y = num)) + 
-  geom_bar(stat='identity') +
-  labs(title="Breakdown of Top 50 Books by Publisher") +
-  xlab("Publisher") +
-  ylab("Number of Books in the Top 50")
+# ggplot(publishers, aes(x = reorder(name, -num), y = num)) + 
+#   geom_bar(stat='identity') +
+#   labs(title="Breakdown of Top 50 Books by Publisher") +
+#   xlab("Publisher") +
+#   ylab("Number of Books in the Top 50")
 @
 
 The bar plot shows that Hyperion has published the highest number of "popular" books at the Seattle Public Library. However, they are still tied with the 'Other' category, which implies that the publisher doesn't really have an effect on the popularity of the book. This seems to makes sense; most readers don't consider the publishing company when deciding what book to read.
 
 \newpage
 \section{Killer Plot}
+\subsection{Overview}
+Our killer plot is a novel visualization that provides insight into both the popularity and sentiment of a particular novel over time. At its most fundamental level, the killer plot shows a time series of the number of monthly checkouts of a particular book at the Seattle Public Library over a given range of months. At each month within this range, we display a specific word that is most distinctive amongst all words in the reviews of the novel from this month. We calculate the distinctiveness of this word using a weighted log odds metric. The size of the word is relative to its distinctiveness and the color corresponds to the rating of the review (i.e. green words correspond to 5 star reviews, yellow to 3 or 4 start reviews, and red to 1 or 2 star reviews).\\
+
+With this representation, we hope to provide a unified representation of both the popularity of the novel in terms of checkouts from the library, but also the larger public sentiment towards the novel as is revealed through the review data. If, for example, a book initially achieves widespread popularity and then experiences another later resurgence, this plot allows us to visualize and interpret the sentiment surrounding its initial reception as well as its later resurgence. This can be particularly useful in understanding potential reasons behind why a particular novel may be experiencing a revival in the literary marketplace. Below we have provide two examples of our killer plot for Suzanne Collins' \textit{Catching Fire} and Paula Hawkins' \textit{The Girl on the Train: A Novel}.
+
+\newpage
 \subsection{Catching Fire - Suzanne Collins}
 <<echo=FALSE,message=FALSE,results='hide',fig.width=8,fig.height=7>>=
-plot_word_timeseries(killer_plot_data, "Catching fire / Suzanne Collins.", remove_overlap=TRUE)
+plot_word_timeseries(killer_plot_data, "Catching fire / Suzanne Collins.", plot_title = "Catching Fire - Suzanne Collins", remove_overlap=TRUE)
 @
 
+\newpage
 \subsection{The Girl on the Train: A Novel - Paula Hawkins}
 <<echo=FALSE,message=FALSE,results='hide',fig.width=8,fig.height=7>>=
-plot_word_timeseries(killer_plot_data, "The Girl on the Train: A Novel")
+plot_word_timeseries(killer_plot_data, "The Girl on the Train: A Novel", plot_title = "The Girl on the Train: A Novel - Paula Hawkins", remove_overlap=TRUE)
 @
 
 \newpage

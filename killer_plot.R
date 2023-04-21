@@ -11,7 +11,7 @@ plot_base_graph <- function(x, y){
   grid.rect()
 }
 
-plot_word_timeseries <- function(data, book_title, smoothing_coefficient=2/3, show_line=TRUE, remove_overlap=FALSE){
+plot_word_timeseries <- function(data, book_title, plot_title = "", smoothing_coefficient=2/3, show_line=TRUE, remove_overlap=FALSE){
   
   title_data <- data %>%
     filter(title==book_title)
@@ -30,7 +30,12 @@ plot_word_timeseries <- function(data, book_title, smoothing_coefficient=2/3, sh
   grid.text("Number of Checkouts", x = unit(-3.4, "lines"), rot = 90)
   
   # Plot title
-  grid.text(book_title, y = min(title_checkouts_smoothed$y) + 1.1 * (max(title_checkouts_smoothed$y) - min(title_checkouts_smoothed$y)), default.units="native", gp = gpar(fontsize = 16))
+  if (plot_title == ""){
+    grid.text(book_title, y = min(title_checkouts_smoothed$y) + 1.1 * (max(title_checkouts_smoothed$y) - min(title_checkouts_smoothed$y)), default.units="native", gp = gpar(fontsize = 16))
+  }
+  else{
+    grid.text(plot_title, y = min(title_checkouts_smoothed$y) + 1.1 * (max(title_checkouts_smoothed$y) - min(title_checkouts_smoothed$y)), default.units="native", gp = gpar(fontsize = 16))
+  }
   
   # Plot line
   if(show_line){
@@ -40,9 +45,9 @@ plot_word_timeseries <- function(data, book_title, smoothing_coefficient=2/3, sh
   
   # Get word colors
   col <- ifelse(
-    title_data$rating < 3, "firebrick",
+    title_data$rating < 3, "red2",
     ifelse(
-      title_data$rating > 3 & title_data$rating < 5, "gold3", "darkgreen"
+      title_data$rating >= 3 & title_data$rating < 5, "gold2", "forestgreen"
     )
   )
   
@@ -52,6 +57,28 @@ plot_word_timeseries <- function(data, book_title, smoothing_coefficient=2/3, sh
   
   grid.text(title_data$word, x = title_checkouts_smoothed$x, y = title_checkouts_smoothed$y,
             default.units="native", gp=gpar(fontsize=fontsizes, col=col), check.overlap=remove_overlap)
+  
+  # Plot legend
+  pushViewport(viewport(
+    x = unit(0.875, "npc"),
+    y = unit(0.875, "npc"),
+    width = unit(0.25, "npc"),
+    height = unit(0.25, "npc")
+  ))
+  grid.text("Green: 5 stars",
+            x = unit(0.5, "npc"),
+            y = unit(0.7, "npc"),
+            gp = gpar(fontsize = 12, col = "forestgreen"))
+  grid.text("Yellow: 3 or 4 stars",
+            x = unit(0.5, "npc"),
+            y = unit(0.5, "npc"),
+            gp = gpar(fontsize = 12, col = "gold2"))
+  grid.text("Red: 1 or 2 stars",
+            x = unit(0.5, "npc"),
+            y = unit(0.3, "npc"),
+            gp = gpar(fontsize = 12, col = "red2"))
+  grid.rect(gp=gpar(alpha = 0.1, fill = "black"))
+  grid.rect(gp = gpar(col = "black"))
   
   output_plot
   
