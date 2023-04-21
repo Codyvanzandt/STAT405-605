@@ -12,6 +12,8 @@ source("useful_utils.R")
 source("killer_plot.R")
 
 library(ggplot2)
+library(ggbreak)
+library(scales)
 library(dplyr)
 library(RSQLite)
 library(tidyr)
@@ -40,7 +42,7 @@ killer_plot_data <- read.csv("data/killer_plot_data.csv")
 
 From classic literature to contemporary bestsellers, the Seattle Public Library's book collection offers a rich window into its surrounding community's literary tastes and interests. By analyzing checkout trends and book movement, we can uncover which novels and authors are most beloved among library patrons, giving us remarkable insight into the community's unique cultural and social context. \\
 
-This report conducts a preliminary examination of 11,749,255 checkouts from the Seattle Public Library system over the five years between 2018 and 2022. We intend to combine this information with Goodreads review data from the UCSD Book Graph to answer general questions about the contours of contemporary American readership and even perform specific analyses on the competitive dynamics of the book authorship and publishing industry. \\
+This report conducts a preliminary examination of approximately 41 million checkouts from the Seattle Public Library system between 2005 and 2022. We intend to combine this information with Goodreads review data from the UCSD Book Graph to answer general questions about the contours of contemporary American readership and even perform specific analyses on the competitive dynamics of the book authorship and publishing industry. \\
 
 From this point forward, the following questions to guide our exploration and report:
 
@@ -109,60 +111,180 @@ Our supplementary dataset comes from the UCSD Book Graph initiative and contains
 \label{reviewvars}
 \end{table}
 
-\newpage
 \section{Exploratory Analysis}
-\subsection{Seattle Public Library Dataset}
-\subsection{UCSD Book Graph}
+
+\subsection{Total Checkouts per Month}
+
+\begin{figure}[H]
+\begin{center}
+<<explore1, echo=FALSE, fig.width=5, fig.height=3>>=
+query <- paste0("
+SELECT CheckoutMonth as month, CheckoutYear as year, SUM(Checkouts) as total
+FROM checkouts
+GROUP BY CheckoutMonth, CheckoutYear
+ORDER BY CheckoutYear, CheckoutMonth ASC;
+")
+{
+  res <- dbSendQuery(dcon, query)
+  df <- dbFetch(res, n = -1)
+  dbClearResult(res)
+  remove(query)
+}
+df$date <- as.Date(with(df, sprintf("%d-%02d-01", year, month)),
+                   format = "%Y-%m-%d")
+
+ggplot(df, aes(x=date, y=total)) + 
+  geom_line() +
+  labs(
+    title="Monthly Checkout Counts",
+    x = "\nDate",
+    y = "Checkouts\n"
+  ) +
+  scale_y_continuous(labels = label_number(suffix = "K", scale = 1e-3)) +
+  theme_bw() +
+  theme(axis.text=element_text(size=12),
+        axis.title=element_text(size=14))
+@
+\end{center}
+\caption{Total Checkouts per Month}\label{fig:1}
+\end{figure}
+
+Figure~\ref{fig:1} shows the change in the total number of checkouts per month over the entire time period from 2005 to 2022. The initial increase in checkouts from around 2005 to 2009 is most likely due to the adoption of the online checkout system which enabled data collection. There is also a steep drop in checkouts during 2020, which we are certain is due to the COVID-19 pandemic. Since then, the plot shows that checkouts have been recovering quickly and are almost at pre-pandemic numbers.
+
+\subsection{Total Checkouts per Month, by Medium}
+
+\begin{figure}[H]
+\begin{center}
+<<explore2, echo=FALSE, fig.width=5, fig.height=3>>=
+query <- paste0("
+SELECT CheckoutYear, CheckoutMonth, MaterialType, Publisher, SUM(Checkouts) as CheckoutSum
+FROM checkouts
+WHERE MaterialType = 'BOOK' OR MaterialType = 'EBOOK' OR MaterialType = 'AUDIOBOOK'
+GROUP BY CheckoutYear, CheckoutMonth, MaterialType
+ORDER BY CheckoutYear, CheckoutMonth, MaterialType
+")
+{
+  res <- dbSendQuery(dcon, query)
+  df <- dbFetch(res, -1)
+  dbClearResult(res)
+  remove(query)
+}
+
+df$Date <- with(df, sprintf("%d-%02d-01", CheckoutYear, CheckoutMonth))
+df$Date <- as.Date(df$Date, format = "%Y-%m-%d")
+
+ggplot(df) +
+  geom_line(mapping=aes(x=Date, y=CheckoutSum, color = MaterialType)) +
+  scale_y_continuous(labels = label_number(suffix = "K", scale = 1e-3)) +
+  labs(
+    title = "Monthly Checkout Counts, by Medium",
+    x = "Date",
+    y = "Monthly Checkouts"
+  )
+@
+\end{center}
+\caption{Total Checkouts per Month}\label{fig:2}
+\end{figure}
+
+Figure~\ref{fig:2} is similar to Figure~\ref{fig:1}, but is broken down by the three most popular mediums: physical books, audiobooks, and e-books. The checkout counts of physical books is almost identical to the pattern exhibited in Figure~\ref{fig:1}, including the steep drop in 2020. Interestingly, the checkouts of audiobooks and e-books were completely unaffected by the pandemic, most likely due to the ability to check them out online without physically visiting the library.
+
+\subsection{Relative Popularity of Mediums}
+
+\begin{figure}[H]
+\begin{center}
+<<explore3, echo=FALSE, fig.width=5, fig.height=3>>=
+query <- paste0("
+SELECT MaterialType, UsageClass, COUNT(1) as NumCheckouts
+FROM checkouts
+GROUP BY MaterialType, UsageClass
+ORDER BY NumCheckouts DESC
+")
+{
+  res <- dbSendQuery(dcon, query)
+  df <- dbFetch(res, -1)
+  dbClearResult(res)
+  remove(query)
+}
+
+df$MaterialType <- as.factor(df$MaterialType)
+df$UsageClass <- as.factor(df$UsageClass)
+levels(df$MaterialType) <- c(levels(df$MaterialType), 'OTHER')
+levels(df$UsageClass) <- c(levels(df$UsageClass), 'Both')
+df[16,]$MaterialType = 'OTHER'
+df[16,]$NumCheckouts = sum(df$NumCheckouts[16:nrow(df)])
+df[16,]$UsageClass = 'Both'
+df <- df[-c(17:nrow(df)),]
+df$NumCheckouts <- as.numeric(df$NumCheckouts)
+
+ggplot(df) + 
+  aes(x = reorder(MaterialType, -NumCheckouts), y = NumCheckouts, 
+      fill = factor(UsageClass, level = c("Physical", "Digital", "Both"))) +
+  geom_col() + 
+  theme(text = element_text(size=8), 
+        axis.text.x=element_text(angle = -90, vjust = 0.5, hjust=0)) +
+  labs(title = "Checkout Counts by Material Type",
+       x = "Material Type",
+       y = "Number of Checkouts", fill = "Usage Class") +
+  scale_y_cut(breaks=c(50000), which=c(1, 2), scales=c(5, 1), space = 0.02) +
+  scale_x_discrete(labels = function(x) wrap.labels(x, 10))
+@
+\end{center}
+\caption{Checkout Counts by Medium}\label{fig:3}
+\end{figure}
+
+Figure~\ref{fig:3} shows the relative popularity of the types of items that the Seattle Public Library makes available for checkout. Physical books are by far the highest, the checkouts of the next highest two categories (ebooks and sound discs) being around a quarter of the checkout count of physical books. This explains why in Figure~\ref{fig:2}, the pattern of physical book checkouts follows the total number so closely.
+
+\subsection{Genre Popularity Among Physical Books}
+
+\begin{figure}[H]
+\begin{center}
+<<explore4, echo=FALSE, fig.width=5, fig.height=3>>=
+query <- paste0("
+SELECT COALESCE(NULLIF(SUBSTRING(Subjects, 0, INSTR(Subjects, \",\")), \"\"), Subjects) 
+  as Genre
+FROM checkouts
+")
+{
+  res <- dbSendQuery(dcon, query)
+  df <- dbFetch(res, -1)
+  dbClearResult(res)
+  remove(query)
+}
+
+bars <- table(df$Genre)
+bars <- bars[order(-bars)][1:7]
+display <- data.frame(group=names(bars),
+                      value=as.numeric(bars))
+
+ggplot(display) +
+  aes(x = "", y = value, fill = group) +
+  geom_bar(stat = "identity", colour = "white", linewidth = 0.4, width = 1) +
+  coord_polar("y", start = 0) +
+  theme_void() +
+  scale_fill_discrete(name = "Genre (Most to Least Popular)",
+                      breaks = levels(with(display, reorder(group, -value)))) +
+  labs(title = "Top 7 Genres of Physical Books")
+
+remove(display, bars)
+@
+\end{center}
+\caption{Genre Popularity}\label{fig:4}
+\end{figure}
+
+Figure~\ref{fig:4} shows the relative popularity of the genres of physical books at the Seattle Public Library. Clearly, fiction is overwhelmingly popular, accounting for the genre of over 50\% of the books that were checked out over the time period. 
 
 \newpage
-\section{Add Sections Here (One Section per Question/Topic being addressed)}
-\section{Analyzing properties of book popularity}
-
-We first pose the question, "why do some books enjoy widespread acclaim while others fizzle?" More broadly, we are interested in what specific characteristics of books make them more popular than others. We begin this exploration by analyzing the publishers of the top fifty books checked out at the Seattle Public Library.
-
-Specifically, we first filter for the top 50 books by aggregate number of checkouts from 2005 to 2022, then keep a count of their associated publishers. We found that most publishers only have a single "popular" book, so we group any publisher with less than 3 books together in an 'Other' category.
-
-<<echo=FALSE,fig.width=7,fig.height=5>>=
-query <- paste0("
-SELECT Publisher, COUNT(1)
-FROM (SELECT Title, Publisher, SUM(Checkouts) AS count 
-      FROM checkouts 
-      WHERE MaterialType=\'BOOK\' AND Publisher IS NOT NULL
-      GROUP BY Title 
-      ORDER BY count DESC
-      LIMIT 50)
-GROUP BY Publisher
-")
-
-res <- dbSendQuery(dcon, query)
-df <- dbFetch(res, n = -1)
-dbClearResult(res)
-
-publishers <- data.frame(name = c('Hyperion',
-                                  'Other',
-                                  'Scholastic',
-                                  'Beginner Books',
-                                  'Harper & Row'),
-                         num = c(17, 17, 6, 4, 4))
-
-ggplot(publishers, aes(x = reorder(name, -num), y = num)) + 
-  geom_bar(stat='identity') +
-  labs(title="Breakdown of Top 50 Books by Publisher") +
-  xlab("Publisher") +
-  ylab("Number of Books in the Top 50")
-@
-
-The bar plot shows that Hyperion has published the highest number of "popular" books at the Seattle Public Library. However, they are still tied with the 'Other' category, which implies that the publisher doesn't really have an effect on the popularity of the book. This seems to makes sense; most readers don't consider the publishing company when deciding what book to read.
+\section{Data-Driven Insights}
 
 \newpage
 \section{Killer Plot}
 \subsection{Catching Fire - Suzanne Collins}
-<<echo=FALSE,message=FALSE,results='hide',fig.width=8,fig.height=7>>=
+<<killer1, echo=FALSE,message=FALSE,results='hide',fig.width=8,fig.height=7>>=
 plot_word_timeseries(killer_plot_data, "Catching fire / Suzanne Collins.", remove_overlap=TRUE)
 @
 
 \subsection{The Girl on the Train: A Novel - Paula Hawkins}
-<<echo=FALSE,message=FALSE,results='hide',fig.width=8,fig.height=7>>=
+<<killer2, echo=FALSE,message=FALSE,results='hide',fig.width=8,fig.height=7>>=
 plot_word_timeseries(killer_plot_data, "The Girl on the Train: A Novel")
 @
 
