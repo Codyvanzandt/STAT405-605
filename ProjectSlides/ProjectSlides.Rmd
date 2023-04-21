@@ -39,11 +39,13 @@ dcon <- dbConnect(SQLite(), dbname = "data/SQLData.db")
 -   **GoodReads Reviews**: \~15 million reviews for 2 million books from 2013 to 2017
     -   Rating
     -   Review Text
-    
+
 # Exploratory Data Analysis
 
 ## Number of Checkouts by Month
+
 <center>
+
 ```{r 1, results='hide', fig.width=8, fig.height=5}
 query <- paste0("
 SELECT CheckoutMonth as month, CheckoutYear as year, SUM(Checkouts) as total
@@ -72,10 +74,13 @@ ggplot(df, aes(x=date, y=total)) +
   theme(axis.text=element_text(size=12),
         axis.title=element_text(size=14))
 ```
+
 </center>
 
 ## Monthly Book, Ebook, and Audiobook Checkouts
+
 <center>
+
 ```{r, results='hide', fig.width=8, fig.height=5}
 query <- paste0("
 SELECT CheckoutYear, CheckoutMonth, MaterialType, Publisher, SUM(Checkouts) as CheckoutSum
@@ -100,10 +105,13 @@ ggplot(bookFormatData) +
     y = "Monthly Checkouts"
   )
 ```
+
 </center>
 
 ## Number of Checkouts by Medium
+
 <center>
+
 ```{r 2, results='hide', fig.width=8, fig.height=5}
 # Get Checkouts by Material Type
 mat_types <- data.frame(table(checkout_data$MaterialType))
@@ -136,11 +144,13 @@ ggplot(mat_types) +
   scale_y_cut(breaks=c(50000), which=c(1, 2), scales=c(5, 1), space = 0.02) +
   scale_x_discrete(labels = function(x) wrap.labels(x, 10))
 ```
+
 </center>
 
 ## Most Popular Subjects
 
 <center>
+
 ```{r 3, results='hide', fig.width=8, fig.height=5}
 bars <- table(unlist(strsplit(checkout_data$Subjects, ", ")))
 bars <- bars[order(-bars)][1:7]
@@ -149,11 +159,13 @@ pie(bars[1:7], main="Top 7 Checked-Out Book Subjects, 2018-2022",
     col=c('coral1', 'lightsalmon', 'moccasin', 'palegreen',
           'lightskyblue', 'mediumorchid3', 'hotpink1'))
 ```
+
 </center>
 
 ## Most Popular Books
 
 <center>
+
 ```{r 4, results='hide', fig.width=8, fig.height=5}
 is_book <- checkout_data[["MaterialType"]] == "BOOK"
 book_checkouts <- checkout_data[is_book,c("Title", "CheckoutYear", "Checkouts")]
@@ -213,6 +225,7 @@ for(i in seq_along(titles)){
   axis(2, at=i, labels=clean_titles[[i]], col.axis = colors[[i]])
 }
 ```
+
 </center>
 
 # Data-Driven Insights
@@ -227,13 +240,14 @@ for(i in seq_along(titles)){
 
 ## Reading Lines
 
->- Normal People: a Novel
+> -   Normal People: a Novel
 
->- Circe: a Novel
+> -   Circe: a Novel
 
 ## Are Reading Lines More Popular?
 
 <center>
+
 ```{r, results='hide', warning=FALSE, message=FALSE, fig.width=8, fig.height=5}
 query <- paste0("
 SELECT *
@@ -310,11 +324,13 @@ both %>%
   labs(color = "Reading Line")
 
 ```
+
 </center>
 
 ## Where to Publish
 
 <center>
+
 ```{r, results='hide', warning=FALSE, message=FALSE, fig.width=8, fig.height=5}
 
 literary_publishers <- checkouts %>%
@@ -342,11 +358,13 @@ ggplot(literary_publishers,aes(reading_line, quality)) +
   xlab("Literariness") +
   ylab("Quality")
 ```
+
 </center>
 
 ## (The Best of) Where to Publish
 
 <center>
+
 ```{r, results='hide', warning=FALSE, message=FALSE, fig.width=8, fig.height=5}
 
 ggplot(best_literary_publishers,aes(reading_line, quality)) +
@@ -358,12 +376,12 @@ ggplot(best_literary_publishers,aes(reading_line, quality)) +
   xlab("Literariness") +
   ylab("Quality")
 ```
+
 </center>
 
 ## Controversy
 
-Controversy score is defined as $\frac{pn}{|p-n|}$,
-where $p$ is the number of 5-star reviews and $n$ is the number of 1-star reviews
+Controversy score is defined as $\frac{pn}{|p-n|}$, where $p$ is the number of 5-star reviews and $n$ is the number of 1-star reviews
 
 ## Controversial Books
 
@@ -402,6 +420,7 @@ slice_tail(controversial_words, n=-2) %>%
 ## Publisher Conglomeration
 
 <center>
+
 ```{r, results='hide', warning=FALSE, message=FALSE, fig.width=8, fig.height=5}
 query <- paste0("
 SELECT Publisher, CheckoutYear, CheckoutMonth, SUM(Checkouts) as CheckoutSum, MaterialType
@@ -469,12 +488,15 @@ grid.arrange(plot1, plot2,
              layout_matrix = rbind(c(1, 1, 2, 2, 2),
                                    c(1, 1, 2, 2, 2)))
 ```
+
 </center>
 
 # Secondary Dataset
 
 ## Sentiment Analysis
+
 <center>
+
 ```{r, warning=FALSE, message=FALSE, results='hide', fig.width=8, fig.height=5}
 setwd("..")
 
@@ -485,11 +507,13 @@ ggplot(sent_rat, aes(x = score-rating)) +
   geom_histogram(binwidth = 1, fill = "steelblue", color = "white") +
   labs(x = "Difference", y = "Frequency", title = "Difference Between Rating and Sentiment Score")
 ```
+
 </center>
 
 ## Word Cloud
 
 <center>
+
 ```{r, warning=FALSE, message=FALSE, results='hide', fig.width=8, fig.height=5}
 setwd("..")
 
@@ -518,11 +542,13 @@ wordcloud(words = word_freqs_df$Word, freq = word_freqs_df$Freq, min.freq = 1,
           colors = brewer.pal(8, "Dark2"))
 
 ```
+
 </center>
 
 ## Genre Similarity
 
 <center>
+
 ```{r, warning=FALSE, message=FALSE, results='hide', fig.width=8, fig.height=5}
 num_topics <- 10
 lda_model <- LDA(dtm, k = num_topics, control = list(seed = 1234))
@@ -550,11 +576,13 @@ ggplot(tsne_data, aes(x = tsne_x, y = tsne_y, label = label)) +
 
 
 ```
+
 </center>
 
 ## Genre Similarity Matrix
 
 <center>
+
 ```{r, warning=FALSE, message=FALSE, results='hide', fig.width=8, fig.height=5}
 library(proxy)
 
@@ -577,11 +605,13 @@ pheatmap(similarity_matrix,
 
 
 ```
+
 </center>
 
 ## Book Popularity vs Score Standard Deviation
 
 <center>
+
 ```{r, warning=FALSE, message=FALSE, results='hide', fig.width=8, fig.height=5}
 
 setwd("..")
@@ -593,16 +623,19 @@ ggplot(review_cnt_std, aes(x = std_deviation, y = review_count)) +
   labs(title = "Popularity vs Review Std", x = "Standard Deviation", y = "Review Count")
 
 ```
+
 </center>
 
 ## Review Length vs Score Given
 
 <center>
+
 ```{r, warning=FALSE, message=FALSE, results='hide', fig.width=8, fig.height=5}
 
 ggplot(sent_rat, aes(x = as.factor(rating), y = len_log)) + geom_boxplot() + labs(title = "Distribution of ln(Review Length) by Score Given", x = "Score Given", y = "ln(review length)")
 
 ```
+
 </center>
 
 # Killer Plot
@@ -610,6 +643,7 @@ ggplot(sent_rat, aes(x = as.factor(rating), y = len_log)) + geom_boxplot() + lab
 ## Killer Plot - Catching Fire / Suzanne Collins
 
 <center>
+
 ```{r killer, results='hide', fig.width=8, fig.height=5}
 setwd('..')
 data <- read.csv("data/killer_plot_data.csv")
@@ -652,15 +686,30 @@ plot_base_graph <- function(x, y){
 
 plot_word_timeseries(data, "Catching fire / Suzanne Collins.", remove_overlap=TRUE)
 ```
+
 </center>
 
 ## Killer Plot - The Girl on the Train: A Novel / Paula Hawkins
 
 <center>
+
 ```{r killer2, results='hide', fig.width=8, fig.height=5}
 plot_word_timeseries(data, "The Girl on the Train: A Novel")
 ```
+
 </center>
 
-## Questions?
+## Conclusions
 
+-   Do popular books explode onto the scene or accumulate readers more gradually?
+    -   From the killer plot, we can see that books tend to explode onto the scene. After their initial popularity decline though, subsequent popularity surges accumulate readers gradually.
+-   How do the popular success and critical acclaim of novels differ?
+    -   Critical acclaim does not tend to inform popular success. Both highly-controversial **and** highly rated books tend to be the most popular.
+
+## Conclusions
+
+-   How has recent conglomeration of publishers changed the literary marketplace?
+    -   For physical books, the publishing industry has undergone greater diversification in recent years.
+    -   For e-books and audiobooks, large conglomerate publishers have grown to control the digital publishing industry.
+
+## Questions?
