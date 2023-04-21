@@ -17,6 +17,7 @@ library(scales)
 library(dplyr)
 library(RSQLite)
 library(tidyr)
+library(gridExtra)
 
 dcon <- dbConnect(SQLite(), dbname = "data/SQLData.db")
 killer_plot_data <- read.csv("data/killer_plot_data.csv")
@@ -277,7 +278,7 @@ We aim to explore how the conglomeration of the publishing industry affects the 
 
 \begin{figure}[H]
 \begin{center}
-<<publisherconglomeration,echo=FALSE,fig.width=8,fig.height=5>>=
+<<publisherconglomeration,results='hide',message=FALSE,echo=FALSE,fig.width=8,fig.height=5>>=
 query <- paste0("
 SELECT Publisher, CheckoutYear, CheckoutMonth, SUM(Checkouts) as CheckoutSum, MaterialType
 FROM checkouts
@@ -334,8 +335,7 @@ plot2 <- ggplot(publishersByFormat) +
   geom_line(mapping=aes(x=Date, y=Proportion, color = MaterialType)) +
   labs(
     title = "Proportion of Checkouts from Top 5% of Publishers by Format",
-    x = "Date",
-    y = "Proportion of Montly Checkouts"
+    x = "Date"
   ) + 
   scale_y_continuous(limits=c(0.1, 1))+
   theme(plot.title = element_text(size=8))
@@ -353,13 +353,11 @@ grid.arrange(plot1, plot2,
 
 Our killer plot is a novel visualization that provides insight into both the popularity and sentiment of a particular novel over time. At its most fundamental level, the killer plot shows a time series of the number of monthly checkouts of a particular book at the Seattle Public Library over a given range of months. At each month within this range, we display a specific word that is most distinctive among all words in the reviews of the novel from this month. We calculate the distinctiveness of this word using a weighted log odds metric. The size of the word is relative to its distinctiveness and the color corresponds to the rating of the review (i.e. green words correspond to 5-star reviews, yellow to 3 or 4-star reviews, and red to 1 or 2-star reviews). \\
 
-With this representation, we hope to provide a unified representation of both the popularity of the novel in terms of checkouts from the library, but also the larger public sentiment towards the novel as is revealed through the review data. If, for example, a book initially achieves widespread popularity and then experiences another later resurgence, this plot allows us to visualize and interpret the sentiment surrounding its initial reception as well as its later resurgence. This can be particularly useful in understanding potential reasons behind why a particular novel may be experiencing a revival in the literary marketplace. \\
-
 Below, figures \ref{fig:killer:1} and \ref{fig:killer:2} are two examples of our killer plot for Suzanne Collins' \textit{Catching Fire} and Paula Hawkins' \textit{The Girl on the Train: A Novel}, respectively.
 
 \begin{figure}[H]
 \begin{center}
-<<killer1, echo=FALSE,message=FALSE,results='hide',fig.width=7,fig.height=5>>=
+<<killer1, echo=FALSE,message=FALSE,results='hide',fig.width=7,fig.height=6>>=
 plot_word_timeseries(killer_plot_data, "Catching fire / Suzanne Collins.", plot_title = "Catching Fire - Suzanne Collins", remove_overlap=TRUE)
 @
 \end{center}
@@ -368,12 +366,14 @@ plot_word_timeseries(killer_plot_data, "Catching fire / Suzanne Collins.", plot_
 
 \begin{figure}[H]
 \begin{center}
-<<killer2, echo=FALSE,message=FALSE,results='hide',fig.width=7,fig.height=5>>=
+<<killer2, echo=FALSE,message=FALSE,results='hide',fig.width=7,fig.height=6>>=
 plot_word_timeseries(killer_plot_data, "The Girl on the Train: A Novel", plot_title = "The Girl on the Train: A Novel - Paula Hawkins", remove_overlap=TRUE)
 @
 \end{center}
 \caption{Killer Plot for The Girl on the Train by Paula Hawkins}\label{fig:killer:2}
 \end{figure}
+
+With this representation, we hope to provide a unified representation of both the popularity of the novel in terms of checkouts from the library, but also the larger public sentiment towards the novel as is revealed through the review data. If, for example, a book initially achieves widespread popularity and then experiences another later resurgence, this plot allows us to visualize and interpret the sentiment surrounding its initial reception as well as its later resurgence. This can be particularly useful in understanding potential reasons behind why a particular novel may be experiencing a revival in the literary marketplace. \\
 
 \section{Conclusion}
 \subsection{Discussion of Results}

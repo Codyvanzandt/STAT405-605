@@ -68,15 +68,15 @@ plot_word_timeseries <- function(data, book_title, plot_title = "", smoothing_co
   grid.text("Green: 5 stars",
             x = unit(0.5, "npc"),
             y = unit(0.7, "npc"),
-            gp = gpar(fontsize = 12, col = "forestgreen"))
+            gp = gpar(fontsize = 10, col = "forestgreen"))
   grid.text("Yellow: 3 or 4 stars",
             x = unit(0.5, "npc"),
             y = unit(0.5, "npc"),
-            gp = gpar(fontsize = 12, col = "gold2"))
+            gp = gpar(fontsize = 10, col = "gold2"))
   grid.text("Red: 1 or 2 stars",
             x = unit(0.5, "npc"),
             y = unit(0.3, "npc"),
-            gp = gpar(fontsize = 12, col = "red2"))
+            gp = gpar(fontsize = 10, col = "red2"))
   grid.rect(gp=gpar(alpha = 0.1, fill = "black"))
   grid.rect(gp = gpar(col = "black"))
   
