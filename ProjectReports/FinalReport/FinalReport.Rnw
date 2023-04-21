@@ -9,6 +9,7 @@
 <<setup, echo=FALSE,results='hide',warning=FALSE, message=FALSE>>=
 setwd('../..')
 source("useful_utils.R")
+source("killer_plot.R")
 
 library(ggplot2)
 library(dplyr)
@@ -16,6 +17,7 @@ library(RSQLite)
 library(tidyr)
 
 dcon <- dbConnect(SQLite(), dbname = "data/SQLData.db")
+killer_plot_data <- read.csv("data/killer_plot_data.csv")
 @
 
 \begin{document}
@@ -110,38 +112,6 @@ Our supplementary dataset comes from the UCSD Book Graph initiative and contains
 \newpage
 \section{Exploratory Analysis}
 \subsection{Seattle Public Library Dataset}
-<<echo=FALSE,fig.width=7,fig.height=5>>=
-query <- paste0("
-SELECT CheckoutYear, CheckoutMonth, MaterialType, Publisher, SUM(Checkouts) as CheckoutSum
-FROM checkouts
-WHERE MaterialType = 'BOOK' OR MaterialType = 'EBOOK' OR MaterialType = 'AUDIOBOOK'
-GROUP BY CheckoutYear, CheckoutMonth, MaterialType
-ORDER BY CheckoutYear, CheckoutMonth, MaterialType
-;")
-
-res <- dbSendQuery(dcon, query)
-bookFormatData <- dbFetch(res, -1)
-dbClearResult(res)
-
-bookFormatData$Date <- with(bookFormatData, sprintf("%d-%02d-01", CheckoutYear, CheckoutMonth))
-bookFormatData$Date <- as.Date(bookFormatData$Date, format = "%Y-%m-%d")
-@
-
-\begin{figure}[H]
-\begin{center}
-<<echo=FALSE,fig.width=7,fig.height=5>>=
-ggplot(bookFormatData) +
-  geom_line(mapping=aes(x=Date, y=CheckoutSum, color = MaterialType)) +
-  labs(
-    title = "Monthy checkouts of book, e-book, and audiobook formats from 2005-2022",
-    x = "Date",
-    y = "Monthly Checkouts"
-  )
-@
-\end{center}
-\caption{Monthy checkouts of book, e-book, and audiobook formats}\label{fig:1}
-\end{figure}
-
 \subsection{UCSD Book Graph}
 
 \newpage
@@ -186,6 +156,15 @@ The bar plot shows that Hyperion has published the highest number of "popular" b
 
 \newpage
 \section{Killer Plot}
+\subsection{Catching Fire - Suzanne Collins}
+<<echo=FALSE,message=FALSE,results='hide',fig.width=8,fig.height=7>>=
+plot_word_timeseries(killer_plot_data, "Catching fire / Suzanne Collins.", remove_overlap=TRUE)
+@
+
+\subsection{The Girl on the Train: A Novel - Paula Hawkins}
+<<echo=FALSE,message=FALSE,results='hide',fig.width=8,fig.height=7>>=
+plot_word_timeseries(killer_plot_data, "The Girl on the Train: A Novel")
+@
 
 \newpage
 \section{Appendix}
