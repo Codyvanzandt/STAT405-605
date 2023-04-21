@@ -278,14 +278,21 @@ Figure~\ref{fig:4} shows the relative popularity of the genres of physical books
 
 \newpage
 \section{Killer Plot}
+\subsection{Overview}
+Our killer plot is a novel visualization that provides insight into both the popularity and sentiment of a particular novel over time. At its most fundamental level, the killer plot shows a time series of the number of monthly checkouts of a particular book at the Seattle Public Library over a given range of months. At each month within this range, we display a specific word that is most distinctive amongst all words in the reviews of the novel from this month. We calculate the distinctiveness of this word using a weighted log odds metric. The size of the word is relative to its distinctiveness and the color corresponds to the rating of the review (i.e. green words correspond to 5 star reviews, yellow to 3 or 4 start reviews, and red to 1 or 2 star reviews).\\
+
+With this representation, we hope to provide a unified representation of both the popularity of the novel in terms of checkouts from the library, but also the larger public sentiment towards the novel as is revealed through the review data. If, for example, a book initially achieves widespread popularity and then experiences another later resurgence, this plot allows us to visualize and interpret the sentiment surrounding its initial reception as well as its later resurgence. This can be particularly useful in understanding potential reasons behind why a particular novel may be experiencing a revival in the literary marketplace. Below we have provide two examples of our killer plot for Suzanne Collins' \textit{Catching Fire} and Paula Hawkins' \textit{The Girl on the Train: A Novel}.
+
+\newpage
 \subsection{Catching Fire - Suzanne Collins}
 <<killer1, echo=FALSE,message=FALSE,results='hide',fig.width=8,fig.height=7>>=
-plot_word_timeseries(killer_plot_data, "Catching fire / Suzanne Collins.", remove_overlap=TRUE)
+plot_word_timeseries(killer_plot_data, "Catching fire / Suzanne Collins.", plot_title = "Catching Fire - Suzanne Collins", remove_overlap=TRUE)
 @
 
+\newpage
 \subsection{The Girl on the Train: A Novel - Paula Hawkins}
 <<killer2, echo=FALSE,message=FALSE,results='hide',fig.width=8,fig.height=7>>=
-plot_word_timeseries(killer_plot_data, "The Girl on the Train: A Novel")
+plot_word_timeseries(killer_plot_data, "The Girl on the Train: A Novel", plot_title = "The Girl on the Train: A Novel - Paula Hawkins", remove_overlap=TRUE)
 @
 
 \newpage
