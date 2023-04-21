@@ -209,23 +209,19 @@ ORDER BY NumCheckouts DESC
 df$MaterialType <- as.factor(df$MaterialType)
 df$UsageClass <- as.factor(df$UsageClass)
 levels(df$MaterialType) <- c(levels(df$MaterialType), 'OTHER')
-levels(df$UsageClass) <- c(levels(df$UsageClass), 'Both')
-df[16,]$MaterialType = 'OTHER'
-df[16,]$NumCheckouts = sum(df$NumCheckouts[16:nrow(df)])
-df[16,]$UsageClass = 'Both'
-df <- df[-c(17:nrow(df)),]
+df[16:nrow(df),]$MaterialType = 'OTHER'
 df$NumCheckouts <- as.numeric(df$NumCheckouts)
 
-ggplot(df) +
-  aes(x = reorder(MaterialType, -NumCheckouts), y = NumCheckouts,
-      fill = factor(UsageClass, level = c("Physical", "Digital", "Both"))) +
-  geom_col() +
-  theme(text = element_text(size=8),
+ggplot(df) + 
+  aes(x = reorder(MaterialType, -NumCheckouts), y = NumCheckouts, 
+      fill = factor(UsageClass, level = c("Physical", "Digital"))) +
+  geom_col() + 
+  theme(text = element_text(size=8), 
         axis.text.x=element_text(angle = -90, vjust = 0.5, hjust=0)) +
   labs(title = "Checkout Counts by Material Type",
        x = "Material Type",
        y = "Number of Checkouts", fill = "Usage Class") +
-  scale_y_cut(breaks=c(50000), which=c(1, 2), scales=c(5, 1), space = 0.02) +
+  scale_y_cut(breaks=c(300000), which=c(1, 2), scales=c(4, 1), space = 0.02) +
   scale_x_discrete(labels = function(x) wrap.labels(x, 10))
 @
 \end{center}
@@ -275,6 +271,82 @@ Figure~\ref{fig:4} shows the relative popularity of the genres of physical books
 
 \newpage
 \section{Data-Driven Insights}
+\subsection{Publisher Conglomeration}
+
+We aim to explore how the conglomeration of the publishing industry affects the literary marketplace, particularly in the microcosm of the Seattle Public Library. As such, we investigate the number of checkouts attributed to the top 5 percent of publishers every month by number of checkouts. We hypothesize that his metric will represent conglomeration within the publishing industry since a small portion of publishers controlling a disproportionately large part of the industry indicates greater conglomeration and less diversification of publishers used by the library. Figure~\ref{fig:5} displays the number of checkouts per month accounted for from the top 5 percent of publishers overall, as well as separated by book, e-book, and audiobook publishers. What we find is that the proportion of checkouts controlled by top book publishers has been steadily decreasing, indicating a possible greater diversification in the publishers for physical books, whereas the number of checkouts for audio books and e-books from top publishers has increased consistently to around 90 percent currently. This suggests that large conglomerate publishers have grown to control the digital publishing industry as digitization of library content has become more common and more profitable in recent years.
+
+\begin{figure}[H]
+\begin{center}
+<<echo=FALSE,fig.width=8,fig.height=5>>=
+query <- paste0("
+SELECT Publisher, CheckoutYear, CheckoutMonth, SUM(Checkouts) as CheckoutSum, MaterialType
+FROM checkouts
+WHERE MaterialType = 'BOOK' OR MaterialType = 'EBOOK' OR MaterialType = 'AUDIOBOOK'
+GROUP BY Publisher, CheckoutYear, CheckoutMonth, MaterialType
+ORDER BY CheckoutSum
+;")
+
+res <- dbSendQuery(dcon, query)
+publishers <- dbFetch(res, -1)
+dbClearResult(res)
+
+publishers$Date <- with(publishers, sprintf("%d-%02d-01", CheckoutYear, CheckoutMonth))
+publishers$Date <- as.Date(publishers$Date, format = "%Y-%m-%d")
+
+totalPublishers <- publishers %>% 
+  group_by(Date) %>% 
+  summarise(sum = sum(CheckoutSum))
+
+totalPublishers$Proportion <- NA
+
+for (date in totalPublishers$Date){
+  dateSubset <- publishers[publishers$Date == date,]
+  topPublishers <- tail(dateSubset$Publisher, 0.05 * length(dateSubset$Publisher))
+  totalPublishers$Proportion[totalPublishers$Date == date] <- sum(dateSubset$CheckoutSum[dateSubset$Publisher %in% topPublishers]) / totalPublishers$sum[totalPublishers$Date == date]
+}
+
+publishersByFormat <- publishers %>% 
+  group_by(Date, MaterialType) %>% 
+  summarise(TotalCheckouts = sum(CheckoutSum))
+
+publishersByFormat$Proportion <- NA
+
+for (format in c("BOOK", "EBOOK", "AUDIOBOOK")){
+  dataSubset <- publishers[publishers$MaterialType == format,]
+  for (date in publishersByFormat$Date[publishersByFormat$MaterialType == format]){
+    dateSubset <- dataSubset[dataSubset$Date == date,]
+    topPublishers <- tail(dateSubset$Publisher, 0.05 * length(dateSubset$Publisher))
+    publishersByFormat$Proportion[publishersByFormat$Date == date & publishersByFormat$MaterialType == format] <- sum(dateSubset$CheckoutSum[dateSubset$Publisher %in% topPublishers]) / publishersByFormat$TotalCheckouts[publishersByFormat$Date == date & publishersByFormat$MaterialType == format]
+  }
+}
+
+plot1 <- ggplot(totalPublishers) +
+  geom_line(mapping=aes(x=Date, y=Proportion)) +
+  labs(
+    title = "Proportion of Checkouts from Top 5% of All Publishers",
+    x = "Date",
+    y = "Proportion of Montly Checkouts"
+  ) + 
+  scale_y_continuous(limits=c(0.75,1))+
+  theme(plot.title = element_text(size=8))
+
+plot2 <- ggplot(sumPublishers) +
+  geom_line(mapping=aes(x=Date, y=Proportion, color = MaterialType)) +
+  labs(
+    title = "Proportion of Checkouts from Top 5% of Publishers by Format",
+    x = "Date",
+    y = "Proportion of Montly Checkouts"
+  ) + 
+  scale_y_continuous(limits=c(0.1, 1))+
+  theme(plot.title = element_text(size=8))
+
+grid.arrange(plot1, plot2, 
+             layout_matrix = rbind(c(1, 1, 2, 2, 2),
+                                   c(1, 1, 2, 2, 2)))
+@
+\end{center}
+\caption{Measures of Publisher Comglomeration}\label{fig:5}
+\end{figure}
 
 \newpage
 \section{Killer Plot}
