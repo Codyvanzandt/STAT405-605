@@ -61,7 +61,7 @@ From the most popular genres and titles to the unique factors influencing reader
 
 \subsection{Seattle Public Library}
 
-Our primary dataset comes directly from the Seattle Public Library and has approximately twelve million rows for book checkouts spanning the five years between 2018 and 2022. Specifically, each row corresponds to a monthly count of checkouts for the physical or electronic version of an item. Items are not just limited to books; the Seattle Public Library also makes video discs, e-books, and sound discs available to patrons, to name a few. Each row is described by eleven variables, which are described by Table~\ref{libraryvars}.
+Our primary dataset comes directly from the Seattle Public Library and has approximately twelve million rows for book checkouts spanning the five years between 2018 and 2022. Specifically, each row corresponds to a monthly count of checkouts for the physical or electronic version of an item. Items are not just limited to books; the Seattle Public Library also makes video discs, e-books, and sound discs available to patrons, to name a few. Each row is described by eleven variables, which are described in Table~\ref{libraryvars}.
 
 \begin{table}[h]
 \centering
@@ -88,7 +88,7 @@ Our primary dataset comes directly from the Seattle Public Library and has appro
 
 \subsection{UCSD Book Graph}
 
-Our supplementary dataset comes from the UCSD Book Graph initiative and contains over fifteen million reviews for approximately two million books from 465,000 users. Each row of the dataset is a JSON object which represents a single review and its associated metadata. The nine attributes of each JSON-ified review are described in Table~\ref{reviewvars}
+Our supplementary dataset comes from the UCSD Book Graph initiative and contains over fifteen million reviews for approximately two million books from 465,000 users. Each row of the dataset is a JSON object which represents a single review and its associated metadata. The nine attributes of each JSONified review are described in Table~\ref{reviewvars}
 
 \begin{table}[h]
 \centering
@@ -133,7 +133,7 @@ ORDER BY CheckoutYear, CheckoutMonth ASC;
 df$date <- as.Date(with(df, sprintf("%d-%02d-01", year, month)),
                    format = "%Y-%m-%d")
 
-ggplot(df, aes(x=date, y=total)) + 
+ggplot(df, aes(x=date, y=total)) +
   geom_line() +
   labs(
     title="Monthly Checkout Counts",
@@ -149,7 +149,7 @@ ggplot(df, aes(x=date, y=total)) +
 \caption{Total Checkouts per Month}\label{fig:1}
 \end{figure}
 
-Figure~\ref{fig:1} shows the change in the total number of checkouts per month over the entire time period from 2005 to 2022. The initial increase in checkouts from around 2005 to 2009 is most likely due to the adoption of the online checkout system which enabled data collection. There is also a steep drop in checkouts during 2020, which we are certain is due to the COVID-19 pandemic. Since then, the plot shows that checkouts have been recovering quickly and are almost at pre-pandemic numbers.
+Figure~\ref{fig:1} shows the change in the total number of checkouts per month over the entire period from 2005 to 2022. The initial increase in checkouts from around 2005 to 2009 is most likely due to the adoption of the online checkout system which enabled data collection. There is also a steep drop in checkouts during 2020, which we are certain is due to the COVID-19 pandemic. Since then, the plot shows that checkouts have been recovering quickly and are almost at pre-pandemic numbers.
 
 \subsection{Total Checkouts per Month, by Medium}
 
@@ -186,7 +186,7 @@ ggplot(df) +
 \caption{Total Checkouts per Month}\label{fig:2}
 \end{figure}
 
-Figure~\ref{fig:2} is similar to Figure~\ref{fig:1}, but is broken down by the three most popular mediums: physical books, audiobooks, and e-books. The checkout counts of physical books is almost identical to the pattern exhibited in Figure~\ref{fig:1}, including the steep drop in 2020. Interestingly, the checkouts of audiobooks and e-books were completely unaffected by the pandemic, most likely due to the ability to check them out online without physically visiting the library.
+Figure~\ref{fig:2} is similar to Figure~\ref{fig:1}, but is broken down by the three most popular mediums: physical books, audiobooks, and e-books. The variation in checkout counts of physical books is almost identical to the pattern exhibited in Figure~\ref{fig:1}, including the steep drop in 2020. Interestingly, the checkouts of audiobooks and e-books were completely unaffected by the pandemic, most likely due to the ability to check them out online without physically visiting the library.
 
 \subsection{Relative Popularity of Mediums}
 
@@ -216,11 +216,11 @@ df[16,]$UsageClass = 'Both'
 df <- df[-c(17:nrow(df)),]
 df$NumCheckouts <- as.numeric(df$NumCheckouts)
 
-ggplot(df) + 
-  aes(x = reorder(MaterialType, -NumCheckouts), y = NumCheckouts, 
+ggplot(df) +
+  aes(x = reorder(MaterialType, -NumCheckouts), y = NumCheckouts,
       fill = factor(UsageClass, level = c("Physical", "Digital", "Both"))) +
-  geom_col() + 
-  theme(text = element_text(size=8), 
+  geom_col() +
+  theme(text = element_text(size=8),
         axis.text.x=element_text(angle = -90, vjust = 0.5, hjust=0)) +
   labs(title = "Checkout Counts by Material Type",
        x = "Material Type",
@@ -232,7 +232,7 @@ ggplot(df) +
 \caption{Checkout Counts by Medium}\label{fig:3}
 \end{figure}
 
-Figure~\ref{fig:3} shows the relative popularity of the types of items that the Seattle Public Library makes available for checkout. Physical books are by far the highest, the checkouts of the next highest two categories (ebooks and sound discs) being around a quarter of the checkout count of physical books. This explains why in Figure~\ref{fig:2}, the pattern of physical book checkouts follows the total number so closely.
+Figure~\ref{fig:3} shows the relative popularity of the types of items that the Seattle Public Library makes available for checkout. Physical books are by far the highest, the checkouts of the next highest two categories (ebooks and sound discs) being around a quarter of the checkouts of physical books. This explains why in Figure~\ref{fig:2}, the pattern of physical book checkouts follows the total number so closely.
 
 \subsection{Genre Popularity Among Physical Books}
 
@@ -240,7 +240,7 @@ Figure~\ref{fig:3} shows the relative popularity of the types of items that the 
 \begin{center}
 <<explore4, echo=FALSE, fig.width=5, fig.height=3>>=
 query <- paste0("
-SELECT COALESCE(NULLIF(SUBSTRING(Subjects, 0, INSTR(Subjects, \",\")), \"\"), Subjects) 
+SELECT COALESCE(NULLIF(SUBSTRING(Subjects, 0, INSTR(Subjects, \",\")), \"\"), Subjects)
   as Genre
 FROM checkouts
 ")
@@ -271,77 +271,63 @@ remove(display, bars)
 \caption{Genre Popularity}\label{fig:4}
 \end{figure}
 
-Figure~\ref{fig:4} shows the relative popularity of the genres of physical books at the Seattle Public Library. Clearly, fiction is overwhelmingly popular, accounting for the genre of over 50\% of the books that were checked out over the time period. 
+Figure~\ref{fig:4} shows the relative popularity of the genres of physical books at the Seattle Public Library. Fiction is overwhelmingly popular, accounting for the genre of over 50\% of the books that were checked out over the period.
 
 \newpage
 \section{Data-Driven Insights}
 
 \newpage
 \section{Killer Plot}
-\subsection{Overview}
-Our killer plot is a novel visualization that provides insight into both the popularity and sentiment of a particular novel over time. At its most fundamental level, the killer plot shows a time series of the number of monthly checkouts of a particular book at the Seattle Public Library over a given range of months. At each month within this range, we display a specific word that is most distinctive amongst all words in the reviews of the novel from this month. We calculate the distinctiveness of this word using a weighted log odds metric. The size of the word is relative to its distinctiveness and the color corresponds to the rating of the review (i.e. green words correspond to 5 star reviews, yellow to 3 or 4 start reviews, and red to 1 or 2 star reviews).\\
 
-With this representation, we hope to provide a unified representation of both the popularity of the novel in terms of checkouts from the library, but also the larger public sentiment towards the novel as is revealed through the review data. If, for example, a book initially achieves widespread popularity and then experiences another later resurgence, this plot allows us to visualize and interpret the sentiment surrounding its initial reception as well as its later resurgence. This can be particularly useful in understanding potential reasons behind why a particular novel may be experiencing a revival in the literary marketplace. Below we have provide two examples of our killer plot for Suzanne Collins' \textit{Catching Fire} and Paula Hawkins' \textit{The Girl on the Train: A Novel}.
+Our killer plot is a novel visualization that provides insight into both the popularity and sentiment of a particular novel over time. At its most fundamental level, the killer plot shows a time series of the number of monthly checkouts of a particular book at the Seattle Public Library over a given range of months. At each month within this range, we display a specific word that is most distinctive amongst all words in the reviews of the novel from this month. We calculate the distinctiveness of this word using a weighted log odds metric. The size of the word is relative to its distinctiveness and the color corresponds to the rating of the review (i.e. green words correspond to 5-star reviews, yellow to 3 or 4-star reviews, and red to 1 or 2-star reviews). \\
 
-\newpage
-\subsection{Catching Fire - Suzanne Collins}
-<<killer1, echo=FALSE,message=FALSE,results='hide',fig.width=8,fig.height=7>>=
+With this representation, we hope to provide a unified representation of both the popularity of the novel in terms of checkouts from the library, but also the larger public sentiment towards the novel as is revealed through the review data. If, for example, a book initially achieves widespread popularity and then experiences another later resurgence, this plot allows us to visualize and interpret the sentiment surrounding its initial reception as well as its later resurgence. This can be particularly useful in understanding potential reasons behind why a particular novel may be experiencing a revival in the literary marketplace. \\
+
+Below, figures \ref{fig:killer:1} and \ref{fig:killer:2} are two examples of our killer plot for Suzanne Collins' \textit{Catching Fire} and Paula Hawkins' \textit{The Girl on the Train: A Novel}, respectively.
+
+\begin{figure}[H]
+\begin{center}
+<<killer1, echo=FALSE,message=FALSE,results='hide',fig.width=7,fig.height=5>>=
 plot_word_timeseries(killer_plot_data, "Catching fire / Suzanne Collins.", plot_title = "Catching Fire - Suzanne Collins", remove_overlap=TRUE)
 @
+\end{center}
+\caption{Killer Plot for Catching Fire by Suzanne Collins}\label{fig:killer:1}
+\end{figure}
 
-\newpage
-\subsection{The Girl on the Train: A Novel - Paula Hawkins}
-<<killer2, echo=FALSE,message=FALSE,results='hide',fig.width=8,fig.height=7>>=
+\begin{figure}[H]
+\begin{center}
+<<killer2, echo=FALSE,message=FALSE,results='hide',fig.width=7,fig.height=5>>=
 plot_word_timeseries(killer_plot_data, "The Girl on the Train: A Novel", plot_title = "The Girl on the Train: A Novel - Paula Hawkins", remove_overlap=TRUE)
 @
+\end{center}
+\caption{Killer Plot for The Girl on the Train by Paula Hawkins}\label{fig:killer:2}
+\end{figure}
+
+\section{Conclusion}
+\subsection{Discussion of Results}
+\subsubsection*{Do popular books explode onto the scene or accumulate readers more gradually?}
+
+\subsubsection*{How do the popular success and critical acclaim of novels differ?}
+
+\subsubsection*{How has recent conglomeration of publishers changed the literary marketplace?}
+
+\subsection{Limitations}
+
+\subsection{Future Improvements}
 
 \newpage
 \section{Appendix}
 
 \subsection{Fuzzy Title Matching}
 
-To make best use of our UCSD Book Graph Goodreads data, we need to match unique
-book IDs from Goodreads reviews to book checkouts from the Seattle Public Library.
-The Seattle data, however, is messy.
-Author information is often encoded in the title field, which is itself often
-full of misspellings and other typographical oddities. Dataset alignment, then,
-is a challenging problem in its own. As a first attempt, we employ a fuzzy string matching algorithm that computes
-pairwise similarity between the Goodreads and Seattle book titles and 
-reports a match when that similarity crosses a given threshold.
-Our current similarity measure is Jaro-Winkler,
-which we selected primarily because it weighs matches at the beginning of
-a string more heavily than matches towards the end. Given the erroneous additions
-frequently appended to the end of Seattle library book titles, Jaro-Winkler 
-ought to perform well. After parameter optimization, we report that approximately
-thirty percent of Seattle titles have been matched to Goodreads book IDs. 
-With more nuanced title preprocessing and multivariable matching across author and
-publisher, we anticipate that the match rate could approach 50 percent.
+To make best use of our UCSD Book Graph Goodreads data, we need to match unique book IDs from Goodreads reviews to book checkouts from the Seattle Public Library. The Seattle data, however, is messy. Author information is often encoded in the title field, which is itself often full of misspellings and other typographical oddities. Dataset alignment, then, is a challenging problem in its own. As a first attempt, we employ a fuzzy string matching algorithm that computes pairwise similarity between the Goodreads and Seattle book titles and reports a match when that similarity crosses a given threshold. Our current similarity measure is Jaro-Winkler, which we selected primarily because it weighs matches at the beginning of a string more heavily than matches towards the end. Given the erroneous additions frequently appended to the end of Seattle library book titles, Jaro-Winkler ought to perform well. After parameter optimization, we report that approximately thirty percent of Seattle titles have been matched to Goodreads book IDs. With more nuanced title preprocessing and multivariable matching across author and publisher, we anticipate that the match rate could approach 50 percent.
 
 \subsection{Popularity Curve Clustering}
 
-Beyond string matching, we also report some initial research into time series 
-dimensionality reduction and clustering. In considering book popularity over time,
-it is natural to ask if there are certain popularity patterns that recur
-across books, publishers, and genres. If these common patterns can 
-be identified, then perhaps they can be predicted. After consulting the 
-literature on time series clustering, we present a pipeline that we believe
-could identify clusters of books that exhibit similar popularity patterns. 
-This pipeline computes monthly popularity time series curves and transforms them
-through z-normalization, discrete cosine transform, dynamic time warping, and k-medoids clustering. \\
+Beyond string matching, we also report some initial research into time series dimensionality reduction and clustering. In considering book popularity over time, it is natural to ask if there are certain popularity patterns that recur across books, publishers, and genres. If these common patterns can be identified, then perhaps they can be predicted. After consulting the literature on time series clustering, we present a pipeline that we believe could identify clusters of books that exhibit similar popularity patterns. This pipeline computes monthly popularity time series curves and transforms them through z-normalization, discrete cosine transform, dynamic time warping, and k-medoids clustering. \\
 
-Z-normalization makes the shape of popularity curves comparable across books with dramatically different raw checkout numbers. Discrete cosine transform 
-reduces the dimensionality by decomposing and recomposing the time series
-using a smaller number of cosine waves. Dynamic time warping defines a similarity
-score for popularity curves with potentially non-overlapping time domains. And finally,
-k-medoids clustering modififes the more familiar k-medoids clustering by replacing
-average-computed centroids with median-computed centroids. K-medoids is a less common
-choice than k-means, so the selection is worth commenting upon. Compared with k-means,
-k-medoids is less sensitive to outliers and replaces the creation of artificial 
-average-based centroids with median-based ones This sidesteps the need 
-to average different popularity curves together during centroid creation --
-a questionable practice to be sure. \\
+Z-normalization makes the shape of popularity curves comparable across books with dramatically different raw checkout numbers. Discrete cosine transform reduces the dimensionality by decomposing and recomposing the time series using a smaller number of cosine waves. Dynamic time warping defines a similarity score for popularity curves with potentially non-overlapping time domains. And finally, k-medoids clustering modififes the more familiar k-medoids clustering by replacing average-computed centroids with median-computed centroids. K-medoids is a less common choice than k-means, so the selection is worth commenting upon. Compared with k-means, k-medoids is less sensitive to outliers and replaces the creation of artificial average-based centroids with median-based ones This sidesteps the need to average different popularity curves together during centroid creation -- a questionable practice to be sure. \\
 
-We hope that this unsupervised machine learning pipeline will, once implemented,
-make possible a variety of supervised and predictive modeling tasks.
+We hope that this unsupervised machine learning pipeline will, once implemented, make possible a variety of supervised and predictive modeling tasks.
 
 \end{document}
