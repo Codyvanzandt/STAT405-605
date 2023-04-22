@@ -213,11 +213,11 @@ levels(df$MaterialType) <- c(levels(df$MaterialType), 'OTHER')
 df[16:nrow(df),]$MaterialType = 'OTHER'
 df$NumCheckouts <- as.numeric(df$NumCheckouts)
 
-ggplot(df) + 
-  aes(x = reorder(MaterialType, -NumCheckouts), y = NumCheckouts, 
+ggplot(df) +
+  aes(x = reorder(MaterialType, -NumCheckouts), y = NumCheckouts,
       fill = factor(UsageClass, level = c("Physical", "Digital"))) +
-  geom_col() + 
-  theme(text = element_text(size=8), 
+  geom_col() +
+  theme(text = element_text(size=8),
         axis.text.x=element_text(angle = -90, vjust = 0.5, hjust=0)) +
   labs(title = "Checkout Counts by Material Type",
        x = "Material Type",
@@ -294,8 +294,8 @@ dbClearResult(res)
 publishers$Date <- with(publishers, sprintf("%d-%02d-01", CheckoutYear, CheckoutMonth))
 publishers$Date <- as.Date(publishers$Date, format = "%Y-%m-%d")
 
-totalPublishers <- publishers %>% 
-  group_by(Date) %>% 
+totalPublishers <- publishers %>%
+  group_by(Date) %>%
   summarise(sum = sum(CheckoutSum))
 
 totalPublishers$Proportion <- NA
@@ -306,8 +306,8 @@ for (date in totalPublishers$Date){
   totalPublishers$Proportion[totalPublishers$Date == date] <- sum(dateSubset$CheckoutSum[dateSubset$Publisher %in% topPublishers]) / totalPublishers$sum[totalPublishers$Date == date]
 }
 
-publishersByFormat <- publishers %>% 
-  group_by(Date, MaterialType) %>% 
+publishersByFormat <- publishers %>%
+  group_by(Date, MaterialType) %>%
   summarise(TotalCheckouts = sum(CheckoutSum))
 
 publishersByFormat$Proportion <- NA
@@ -327,7 +327,7 @@ plot1 <- ggplot(totalPublishers) +
     title = "Proportion of Checkouts from Top 5% of All Publishers",
     x = "Date",
     y = "Proportion of Montly Checkouts"
-  ) + 
+  ) +
   scale_y_continuous(limits=c(0.75,1))+
   theme(plot.title = element_text(size=8))
 
@@ -336,11 +336,11 @@ plot2 <- ggplot(publishersByFormat) +
   labs(
     title = "Proportion of Checkouts from Top 5% of Publishers by Format",
     x = "Date"
-  ) + 
+  ) +
   scale_y_continuous(limits=c(0.1, 1))+
   theme(plot.title = element_text(size=8))
 
-grid.arrange(plot1, plot2, 
+grid.arrange(plot1, plot2,
              layout_matrix = rbind(c(1, 1, 2, 2, 2),
                                    c(1, 1, 2, 2, 2)))
 @
@@ -376,16 +376,35 @@ plot_word_timeseries(killer_plot_data, "The Girl on the Train: A Novel", plot_ti
 With this representation, we hope to provide a unified representation of both the popularity of the novel in terms of checkouts from the library, but also the larger public sentiment towards the novel as is revealed through the review data. If, for example, a book initially achieves widespread popularity and then experiences another later resurgence, this plot allows us to visualize and interpret the sentiment surrounding its initial reception as well as its later resurgence. This can be particularly useful in understanding potential reasons behind why a particular novel may be experiencing a revival in the literary marketplace. \\
 
 \section{Conclusion}
-\subsection{Discussion of Results}
-\subsubsection*{Do popular books explode onto the scene or accumulate readers more gradually?}
+\subsection{Results Discussion}
 
-\subsubsection*{How do the popular success and critical acclaim of novels differ?}
+Our work has allowed us to answer some of the guiding questions that we posed in the introduction. \\
 
-\subsubsection*{How has recent conglomeration of publishers changed the literary marketplace?}
+\textbf{Do popular books explode onto the scene or accumulate readers more gradually?} \\
+
+Our results suggest that while popular books initially explode onto the scene,subsequent surges in popularity are more gradual. Figure~\ref{fig:killer:2}, our killer plot for The Girl on the Train, is a great example. After its initial decline in popularity, it resurged in popularity for around a year before declining again. \\
+
+\textbf{How do the popular success and critical acclaim of novels differ?} \\
+
+Our results suggest that popular success can vary based on the intensity of opinions. Figure~\ref{fig:killer:2}, our killer plot for The Girl on the Train, is a great example. After its initial decline, reviews during its resurgence in popularity are largely neutral to negative. In the killer plot for Suzanne Collins' \textit{Hunger Games: Mockingjay} that was not shown in the paper, reviews during a resurgence in popularity were overwhelmingly positive. \\
+
+\textbf{How has recent conglomeration of publishers changed the literary marketplace?} \\
+
+We find that for physical books, the publishing industry has actually seem to have undergone greater diversification in recent years. This has led to the availability of books from a wide variety of publishers. The opposite is true for e-books and audiobooks. Our results suggest that large conglomerate publishers have grown to control the digital publishing industry, which is unsurprising given the rapid rise of digital formats following pandemic and shutdown of the physical checkout in the library.
 
 \subsection{Limitations}
 
+Our investigation has several limitations that should be taken into account when interpreting the results. First, our primary dataset only includes book checkout information from the Seattle Public Library, which may not be representative of the reading habits and preferences of the wider American population. \\
+
+Second, our supplementary review dataset contains reviews that were voluntarily submitted. This constitutes a small subset of the reading population and also is not necessarily representative of broader opinion. Furthermore, the quality and relevance of reviews may vary widely, which definitely impacts the interpretability and accuracy of our analyses. \\
+
+Finally, similar to the limitations of our supplementary dataset, the book/item-specific information such as the subjects were manually entered by library staff. Especially considering the large size of the dataset, it is possible that there were errors or inconsistencies in the data that we did not catch during the data cleaning stage. This could also potentially impact our conclusions.
+
 \subsection{Future Improvements}
+
+To address the limitations mentioned above, we can expand our primary dataset to include additional libraries to get a more comprehensive look at reading habits across the country. We can also conduct more rigorous data cleaning and validatino procedures to minimize the potential impact of response bias in the reviews or inconsistencies in the book reporting. \\
+
+To refine our analysis, we can consider investigating e-books and audiobooks more carefully. Our results already suggest that both digital formats are increasing in popularity, so it could be useful to incorporate analysis on those mediums in order to validate the conclusions we've already made.
 
 \newpage
 \section{Appendix}
