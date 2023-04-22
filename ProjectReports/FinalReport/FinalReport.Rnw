@@ -348,6 +348,257 @@ grid.arrange(plot1, plot2,
 \caption{Measure of Publisher Conglomeration}\label{fig:5}
 \end{figure}
 
+\subsection{Reading Lines}
+
+As the leaves began to turn in 2018, Sally Rooney debuted her second novel, \emph{Normal People}. Rooney, an Irishwomen of scarcely 28 years, had already enjoyed widespread
+critical acclaim on both sides of the Atlantic with her breakout novel, \emph{Conversations with Friends}. In much the same fashion, \emph{Normal People} exploded out of Rooney's native Dublin, enthralling London readers by the thousands before crossing the ocean to pick up tens of thousands more in New York and beyond. New readers, however, were not the only souvenir of the book's transatlantic trek. It also gained a longer title.
+Styled on the continent simply as *Normal People*, the book was marketed by publisher Hogarth Press to American audiences
+as \emph{Normal People: a Novel}. The addition, known in the trade as a reading line, has
+been deployed by printers and publishers for the last 300 years, all to ensure their books end up -- and stay -- in the hands of readers. Of reading lines, we ask this: was Hogarth Press right? Do books with reading lines sell better than those without? Or to ask an even stronger version of the question: given two books that are otherwise \emph{identical}, does the public prefer versions with or without readline lines?
+
+\begin{figure}[H]
+\begin{center}
+
+<<reading_lines1, echo=FALSE,message=FALSE,results='hide',fig.width=7,fig.height=6>>=
+
+query <- paste0("
+SELECT *
+FROM checkouts
+WHERE CheckoutYear >= 2012 AND CheckoutYear <= 2022
+")
+{
+  res <- dbSendQuery(dcon, query)
+  checkouts <- dbFetch(res, n = -1)
+  dbClearResult(res)
+  remove(query)
+}
+
+custom_clean_strings <- function(x){
+  x <- sub("\\s?\\/\\s?.*$", "", x)
+  x <- sub("\\[.*\\]", "", x)
+  tolower(x)
+}
+
+has_reading_line <- function(x, line="novel"){
+  str_detect(x, paste0(":\\s?(a|A)\\s",line))
+}
+
+strip_reading_line <- function(x){
+  str_split_i(x, "\\s?:\\s", 1)
+}
+
+limit_text <- function(x, words=2){
+  x <- str_split_1(x, ",")[1]
+  x <- str_replace_all(x, "\\W+", " ")
+  x <- str_split_1(x, "\\s")
+  paste(x[1:min(words, length(x))], collapse=" ")
+}
+
+
+checkouts <- checkouts %>%
+  filter(MaterialType %in% c("EBOOK", "AUDIOBOOK", "BOOK") ) %>%
+  mutate(Title = custom_clean_strings(Title),
+         Date = as.Date(paste0(CheckoutYear,"-",CheckoutMonth,"-01"), "%Y-%m-%d"),
+         reading_line = has_reading_line(Title))
+
+word_of_interest <- "novel"
+
+books_with_tag <- checkouts %>%
+  mutate(id_checkouts = row_number()) %>%
+  filter( has_reading_line(Title) ) %>%
+  group_by(Title) %>%
+  summarize(n=sum(Checkouts)) %>%
+  arrange(desc(n)) %>%
+  pull(unique(Title))
+
+books_without_tag <- unique(strip_reading_line(books_with_tag))
+
+both <- checkouts %>%
+  filter(strip_reading_line(Title) %in% books_without_tag ) %>%
+  mutate(reading_line = has_reading_line(Title)) %>%
+  group_by(reading_line) %>%
+  mutate( id =ifelse(reading_line == TRUE, row_number(), NA)) %>%
+  ungroup()
+
+both %>%
+  filter(MaterialType == "BOOK") %>%
+  group_by(reading_line, Date) %>%
+  summarize(checkouts = mean(Checkouts)) %>%
+  ggplot() +
+  geom_smooth(aes(Date, checkouts, color=reading_line)) +
+  ggtitle("Novel Popularity by Reading Line") +
+  xlab("Time") +
+  ylab("Mean Checkouts per Book per Month") +
+  scale_color_manual(values=c("blue", "red")) +
+  labs(color = "Reading Line")
+
+@
+\end{center}
+\caption{Are Books with Reading Lines More Popular than those Without?}
+\end{figure}
+
+The evidence -- at least for the last decade -- is compelling: books with reading lines outsell books without, even when the books themselves are identical. But the story is a bit
+more complicated. While the average lined book is checked out more than its unlined
+counterpart, that difference is largely driven by a handful of
+super-seller mega novels that dominate the marketplace for years.
+Think \emph{Where the Crawdads Sing: a Novel}, \emph{Less: a Novel}, and Sally Rooney's own offerings. When one considers total checkouts rather than average checkouts, the story reverses and unlined books lead checkouts by 50 percent. It is more accurate, then, to say that reading lines help the \emph{most popular} books scale the heights, while doing little
+for books and languish further down bestseller lists -- an interpretation corroborated when one notes that lined books make up 70 percent of top-20 bestsellers but only 40 percent of the top 1000. Reading lines, then, are a tool of momentum: they help great books sell even better while offering comparatively little to more marginal titles. \\
+
+Having established the value of reading lines, an author who aspires to the top of
+charts might next wonder which publishers are the best at affixing ": a Novel" and
+therefore bringing a book one step closer to super-stardom. We can identify those
+elite literary purveyors by comparing the proportion of lined books to the average
+checkout numbers for each publisher.
+
+\begin{figure}[H]
+\begin{center}
+
+<<reading_lines2, echo=FALSE,message=FALSE,results='hide',fig.width=7,fig.height=6>>=
+literary_publishers <- checkouts %>%
+  filter(MaterialType == "BOOK") %>%
+  group_by(Publisher ) %>%
+  add_count() %>%
+  filter(n > 1000) %>%
+  ungroup() %>%
+  group_by(Publisher) %>%
+  summarise(reading_line = mean(reading_line), quality=mean(Checkouts)) %>%
+  arrange(desc(reading_line)) %>%
+  filter(reading_line > .05)
+
+best_literary_publishers <- literary_publishers %>%
+  filter(reading_line >= .2*sd(reading_line) + mean(reading_line) & quality >= .20*sd(quality) + mean(quality)) %>%
+  mutate(publisher = unname(sapply(Publisher, limit_text)))
+
+ggplot(literary_publishers,aes(reading_line, quality)) +
+  geom_point() +
+  geom_point(data=best_literary_publishers,color="red")+
+  scale_x_log10()+
+  scale_y_log10()+
+  ggtitle("Publishers: Reading Line Propensity vs. Popularity")+
+  geom_smooth(aes(reading_line, quality),method="lm") +
+  xlab("Percent of Books with Reading Lines") +
+  ylab("Average Monthly Checkouts per Book")
+@
+\end{center}
+\caption{Publisher Tendency Towards Reading Lines vs. Book Popularity}
+\end{figure}
+
+The data -- which incidentally affirms a positive relationship between reading lines and popular success -- identifies a cadre of publishers who find tremendous popular success in
+affixing ": a Novel" to their titles. Certainly, books can certainly succeed with
+publishers who eschew lined novels, but an aspiring Sally Rooney may not wish to take
+that chance and instead prefer one of publishers the previous graph highlights in red.
+
+\begin{figure}[H]
+\begin{center}
+
+<<reading_lines3, echo=FALSE,message=FALSE,results='hide',fig.width=7,fig.height=6>>=
+
+ggplot(best_literary_publishers,aes(reading_line, quality)) +
+  geom_point(data=best_literary_publishers,color="red")+
+  geom_text(aes(label=publisher), size=3, vjust=1.5) +
+  scale_x_log10()+
+  scale_y_log10()+
+  ggtitle("Successful Reading-Line-Friendly Publishers")+
+  xlab("Percent of Books with Reading Lines") +
+  ylab("Average Monthly Checkouts per Book")
+
+@
+\end{center}
+\caption{Publisher Tendency Towards Reading Lines vs. Book Popularity}
+\end{figure}
+
+Among this list are the world's most successful literary publishers -- small, elite specialists each in the kind of capital-L Literary fiction that routinely tops critical and popular lists. Crown's space-thriller \emph{The Martian: a Novel}, Scribner's mega-hit \emph{All the Light We Cannot See}, Atria's \emph{Anxious People}, and leading the pack in combined popularity
+and propensity for reading lines: Hogarth Press, the American publisher of Sally Rooney's bestsellers. \\
+
+In short, reading lines matter. Books with ": a Novel" affixed are more successful on average and make up a far more than their due share of bestsellers and critical darlings.
+But indiscriminately appending a reading line is unlikely to be a winning strategy. Indeed, one is best served by leaving that particular editorial decision
+to the literary minds behind the anglophone world's most successful independent publishers. It did, after all, work for Sally Rooney.
+
+\subsection{Controversy}
+
+Some books we love, some books we hate, and still others we \emph{love} to \emph{hate}. In this section, we present a novel method for identifying the most controversial books in our corpus of Goodreads review data. Among these books are the political polarizing, the socially stigmatized, and chart-toppers that get everyone talking to each other, if perhaps not very nicely. \\
+
+We first highlight our simple formula for controversy and division: $\frac{pn}{|p-n+1|}$ where $p$ is the number of 5-star or \textbf{p}ositive reviews and $n$ the number of 1-star or \textbf{n}egative ones. The idea behind the formula is simple: the numerator rewards raw popularity, while the denominator punishes any book with an imbalance of positivity and negativity. After all, a truly controversial book, needs to be both wildly popular \emph{and} deeply divisive, inspiring love and hate in near equal measure among its dedicated devotees and determined detractors. \\
+
+\begin{figure}[H]
+\begin{center}
+
+<<controversy1, echo=FALSE,message=FALSE,results='hide',fig.width=7,fig.height=6>>=
+
+setwd('../..')
+reviews <- read_csv("./data/reviews.csv")
+works <- read_csv("./data/goodreads_works.csv")
+controversial_words <- read_csv("./data/controversial_words.csv")
+
+controversy <- reviews %>%
+  group_by(book_id) %>%
+  filter(rating == 5 | rating <=2) %>%
+  group_by(book_id) %>%
+  # positive reviews == 5 stars, negative are 2 or less
+  summarize(p = sum(rating == 5), n = sum(rating <= 2) ) %>%
+  ungroup() %>%
+  filter(p > 15 & n > 5) %>%
+  # The numerator increases with popularity, while the denominator penalizes books
+  # with an uneven balance of positive and negative reviews
+  mutate(c = (p*n) / (abs(p-n)+1)) %>%
+  select(book_id, c) %>%
+  arrange(desc(c))
+
+controversy <- controversy %>%
+  left_join(works, by=join_by(book_id==best_book_id))
+
+
+# Most (and least) controversial titles
+
+controversial_titles <- controversy %>%
+  filter( title != "Dark Money: The Hidden History of the Billionaires Behind the Rise of the Radical Right") %>%
+  filter( title != "The Passage of Power (The Years of Lyndon Johnson, Volume 4)") %>%
+  filter( title != "The Little Mouse, the Red Ripe Strawberry, and the Big Hungry Bear") %>%
+  filter(row_number() > max(row_number()) - 10 | row_number() <= 10)
+
+controversial_titles %>% 
+  mutate( c = c - mean(c)) %>%
+  mutate(title = reorder(title, c), c_color = ifelse(c>0,"controversial", "uncontroversial")) %>%
+  ggplot(aes(title, c, fill = c_color)) +
+  geom_col() +
+  coord_flip() + 
+  labs(y = "Controversy Score", x="Title", title="Most and Least Controversial Texts", fill="")
+@
+\end{center}
+\caption{Publisher Tendency Towards Reading Lines vs. Book Popularity}
+\end{figure}
+
+Topping the list is Alice Sebold's \emph{The Lovely Bones}, a mainstay on
+banned-books lists that chronicles the fictional story of a teenage girl
+who after being raped and murdered observes her family's grief from the 
+afterlife. The second is Stephanie Meyer's young adult vampire romance, Twilight. A book that, for better or worse, needs no introduction. Even so, Stephanie Meyer wins the dubious honor of being the only author to feature twice in the top five (and indeed, the top 50) most controversial titles. By a completely different token, the third book is Ayn Rand's divisive opus of Objective philosophy and libertarianism. In truth, the analysis writes itself, although it is still worth pausing the admire the diversity of controversy. Between philosophical treatises, young adult fiction, and classic literature, controversy seems to cut across taste, time, and genre. Controversy, then, is a slippery term that inhere in authors, genres, or writing styles, but in concepts. To dig deeper into \emph{which} concepts, we present the results of an SVM regression that predicts our custom controversy score from the text of individual book reviews from the Goodreads review data set. 
+
+\begin{figure}[H]
+\begin{center}
+
+<<controversy2, echo=FALSE,message=FALSE,results='hide',fig.width=7,fig.height=6>>=
+slice_tail(controversial_words, n=-2) %>% 
+  filter(row_number() > max(row_number()) - 20 | row_number() <= 20) %>% 
+  mutate(
+    term = reorder(sub("tfidf_review_text_", "", term), estimate),
+    term_color = ifelse(estimate>0,"controversial", "uncontroversial"),
+    ) %>%
+  ggplot(aes(term, estimate, fill = term_color)) +
+  geom_col() +
+  coord_flip() + 
+  labs(y = "Controversy Score", x="Title", title="Controversial Review Language",
+       fill = ""
+       )
+@
+\end{center}
+\caption{Publisher Tendency Towards Reading Lines vs. Book Popularity}
+\end{figure}
+
+While vampire \emph{does} make its rather predictable appearance, the majority of the list is dominated by classic hallmarks of banned books and controversial texts: murder and death, sex and bodies, and dystopian society. More interesting, though, are the meta-narrative terms that do not so much characterize the content of the book, but the experience of reading the book. As the words "movie," "watching," and "film" imply, wherever movie adaptations go, controversy soon follows. Adaptation run the risk of dividing fans, and the fraught process of translating literary works for the silver screen often invites the most bitter of debates. Even more curiously, "narrator," and "read" suggest that reviewers often find themselves divided on the mechanics by which books make meaning. The uncontroversial narrator fades into the background, helping a reader to forget that they are, in fact, \emph{reading}. By contrast, the controversial narrator stands out and draws comment, foregrounding a reader's own readership and thereby opening up the book's narrative structure to comments both adoring and despising. \\
+
+In summary, while a certain kind of content will always stir up controversy, readers also have strong and often opposing views on how books ought to go about the business of telling a story. For every division over teenage vampires, it seems there is another argument boiling just below the surface about adaptation, narrative voice, and very mechanics of literary meaning-making.
+
+
 \newpage
 \section{Killer Plot}
 
@@ -390,7 +641,7 @@ Our results suggest that popular success can vary based on the intensity of opin
 
 \textbf{How has recent conglomeration of publishers changed the literary marketplace?} \\
 
-We find that for physical books, the publishing industry has actually seem to have undergone greater diversification in recent years. This has led to the availability of books from a wide variety of publishers. The opposite is true for e-books and audiobooks. Our results suggest that large conglomerate publishers have grown to control the digital publishing industry, which is unsurprising given the rapid rise of digital formats following pandemic and shutdown of the physical checkout in the library.
+We find that for physical books, the publishing industry has actually seem to have undergone greater diversification in recent years. This has led to the availability of books from a wide variety of publishers. The opposite is true for e-books and audiobooks. Our results suggest that large conglomerate publishers have grown to control the digital publishing industry, which is unsurprising given the rapid rise of digital formats following pandemic and shutdown of the physical checkout in the library. \\
 
 \subsection{Limitations}
 
@@ -406,19 +657,26 @@ To address the limitations mentioned above, we can expand our primary dataset to
 
 To refine our analysis, we can consider investigating e-books and audiobooks more carefully. Our results already suggest that both digital formats are increasing in popularity, so it could be useful to incorporate analysis on those mediums in order to validate the conclusions we've already made.
 
+\subsection{In Closing}
+
+In an effort to draw these apparently disparate results together, we present the following conclusion. For although recent conglomeration has reduced the audiobook and ebook markets to a handful of major publishers, the independent book publishing market continues to deepen and diversify. The independent publishers -- especially of literary fiction -- maintain a rare skill at identifying and marketing transatlantic commercial successes, which tend
+more often than not to bear the publishers' trademark reading line: ": a Novel." Lastly, any author looking to draft a novel worthy of the literary elite's reading tag would be well-advised to step lightly around sex, murder, vampires, or especially explicit narrative structures. And while we make no guarantees that following this advice will make anyone the next Sally Rooney, we do hope that any reader leaves this article with a deeper appreciate of the intricacies and idiosyncrasies of the American literary publishing industry.
+
 \newpage
+
 \section{Appendix}
 
 \subsection{Fuzzy Title Matching}
 
-To make best use of our UCSD Book Graph Goodreads data, we need to match unique book IDs from Goodreads reviews to book checkouts from the Seattle Public Library. The Seattle data, however, is messy. Author information is often encoded in the title field, which is itself often full of misspellings and other typographical oddities. Dataset alignment, then, is a challenging problem in its own. As a first attempt, we employ a fuzzy string matching algorithm that computes pairwise similarity between the Goodreads and Seattle book titles and reports a match when that similarity crosses a given threshold. Our current similarity measure is Jaro-Winkler, which we selected primarily because it weighs matches at the beginning of a string more heavily than matches towards the end. Given the erroneous additions frequently appended to the end of Seattle library book titles, Jaro-Winkler ought to perform well. After parameter optimization, we report that approximately thirty percent of Seattle titles have been matched to Goodreads book IDs. With more nuanced title preprocessing and multivariable matching across author and publisher, we anticipate that the match rate could approach 50 percent.
+To make best use of our UCSD Book Graph Goodreads data, we need to match unique book IDs from Goodreads reviews to book checkouts from the Seattle Public Library. The Seattle data, however, is messy. Author information is often encoded in the title field, which is itself often full of misspellings and other typographical oddities. Dataset alignment, then, is a challenging problem in its own. As a first attempt, we employ a fuzzy string matching algorithm that computes pairwise similarity between the Goodreads and Seattle book titles and reports a match when that similarity crosses a given threshold. Our current similarity measure is Jaro-Winkler, which we selected primarily because it weighs matches at the beginning of a string more heavily than matches towards the end. Given the erroneous additions frequently appended to the end of Seattle library book titles, Jaro-Winkler ought to perform well. After parameter optimization, we report that approximately 60 percent of Seattle titles have been matched to Goodreads book IDs.
 
 \subsection{Popularity Curve Clustering}
 
-Beyond string matching, we also report some initial research into time series dimensionality reduction and clustering. In considering book popularity over time, it is natural to ask if there are certain popularity patterns that recur across books, publishers, and genres. If these common patterns can be identified, then perhaps they can be predicted. After consulting the literature on time series clustering, we present a pipeline that we believe could identify clusters of books that exhibit similar popularity patterns. This pipeline computes monthly popularity time series curves and transforms them through z-normalization, discrete cosine transform, dynamic time warping, and k-medoids clustering. \\
+Beyond string matching, we also report some initial research into time series dimensionality reduction and clustering. In considering book popularity over time, it is natural to ask if there are certain popularity patterns that recur across books, publishers, and genres. After consulting the literature on time series clustering, we present a pipeline that we believed could identify clusters of books that exhibit similar popularity patterns. This pipeline computes monthly popularity time series curves and transforms them through z-normalization, discrete cosine transform, dynamic time warping, and k-medoids clustering. \\
 
 Z-normalization makes the shape of popularity curves comparable across books with dramatically different raw checkout numbers. Discrete cosine transform reduces the dimensionality by decomposing and recomposing the time series using a smaller number of cosine waves. Dynamic time warping defines a similarity score for popularity curves with potentially non-overlapping time domains. And finally, k-medoids clustering modififes the more familiar k-medoids clustering by replacing average-computed centroids with median-computed centroids. K-medoids is a less common choice than k-means, so the selection is worth commenting upon. Compared with k-means, k-medoids is less sensitive to outliers and replaces the creation of artificial average-based centroids with median-based ones This sidesteps the need to average different popularity curves together during centroid creation -- a questionable practice to be sure. \\
 
-We hope that this unsupervised machine learning pipeline will, once implemented, make possible a variety of supervised and predictive modeling tasks.
+Disappointingly, if perhaps not quite unfortunately, the checkout timeseries did not meaningfully cluster even after optimization. We were able to identify groups will good intra- and inter-cluster metrics, but they were not interpretively interesting. 
+
 
 \end{document}
