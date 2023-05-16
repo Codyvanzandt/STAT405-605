@@ -8,8 +8,8 @@
 
 <<setup, echo=FALSE,results='hide',warning=FALSE, message=FALSE>>=
 setwd('../..')
-source("useful_utils.R")
-source("killer_plot.R")
+source("scripts/useful_utils.R")
+source("scripts/killer_plot.R")
 
 library(ggplot2)
 library(ggbreak)
